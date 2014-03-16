@@ -1,0 +1,10 @@
+float64 x # in meters
+float64 y # in meters
+float64 z # in meters
+float64 theta # x-y plane orientation, in radians
+float64 scale # linear amplification on x/y/z axes
+uint32 imageWidth # in pixels
+uint32 imageHeight # in pixels
+float64 imageFPS # in Hz
+
+---
