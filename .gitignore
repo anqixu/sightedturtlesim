@@ -11,3 +11,9 @@
 *.lai
 *.la
 *.a
+
+# ROS files
+.project
+.cproject
+.pydevproject
+src/sightedturtlesim/*
