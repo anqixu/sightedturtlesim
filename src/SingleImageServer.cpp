@@ -13,11 +13,12 @@ using namespace cv;
 
 SingleImageServer::SingleImageServer(const std::string& imageFilename, \
     double ppm) : \
-    AbstractImageServer(ppm) {
+    AbstractImageServer(ppm), _imageFilename() {
   _canvas = cv::imread(imageFilename, 1);
   if (_canvas.empty()) {
     throw std::string("Unable to read image: " + imageFilename);
   }
+  _imageFilename = imageFilename;
   setCanvasSize(_canvas.cols, _canvas.rows);
 };
 

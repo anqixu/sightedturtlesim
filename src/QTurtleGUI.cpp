@@ -174,6 +174,13 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
     return false;
   }
 
+  // Do not reset image server if new map / ppm is same as previous
+  if (imageServer != NULL &&
+      ((SingleImageServer*) imageServer)->getImageFilename() == filename.toStdString() &&
+      imageServer->pixelsPerMeter() == ppm) {
+    return true;
+  }
+
   // Clear previous image server
   if (imageServer != NULL) {
     imageWidget->setRobotPtr(NULL);

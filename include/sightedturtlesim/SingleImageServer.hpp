@@ -27,8 +27,12 @@ public:
 
   virtual const cv::Mat& canvas() { return _canvas; };
 
+  const std::string& getImageFilename() { return _imageFilename; };
+
+
 protected:
   cv::Mat _canvas;
+  std::string _imageFilename;
 };
 
 
