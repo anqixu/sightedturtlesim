@@ -16,6 +16,6 @@ def loadSingleImageMap(path, ppm):
 
 if __name__ == "__main__":
   path = "/home/thalassa/anqixu/Dropbox/MAPS/barbados_inland.jpg";
-  ppm = 10.0;
+  ppm = 1.0;
   
   loadSingleImageMap(path, ppm)

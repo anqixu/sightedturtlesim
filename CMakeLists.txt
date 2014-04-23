@@ -129,6 +129,7 @@ target_link_libraries(test_query_geolocated_image ${Boost_LIBS} ${OpenCV_LIBS} $
 add_executable(${PROJECT_NAME} ${GUI_SOURCES} ${GUI_QT_HEADERS} ${GUI_OTHER_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC TRUE)
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBS} ${OpenCV_LIBS} ${catkin_LIBRARIES} ${QT_LIBRARIES})
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 qt5_use_modules(${PROJECT_NAME} Widgets)
 
 
