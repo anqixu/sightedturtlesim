@@ -86,6 +86,8 @@ public:
 
   virtual int type() { return 0; };
 
+  double getScale() { return scale; };
+
 protected:
   void velocityXYZCallback(const sightedturtlesim::VelocityXYZConstPtr& msg);
   bool teleportAbsoluteXYZCallback( \

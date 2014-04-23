@@ -29,6 +29,10 @@ public:
 
   virtual int type() { return ID; };
 
+  unsigned int getImWidth() { return image.image.cols; };
+  unsigned int getImHeight() { return image.image.rows; };
+  double getFPS() { return 1.0/imageRate.expectedCycleTime().toSec(); };
+
   constexpr static unsigned int DEFAULT_IMAGE_WIDTH = 320;
   constexpr static unsigned int DEFAULT_IMAGE_HEIGHT = 240;
   constexpr static double DEFAULT_FPS = 15.0;
@@ -60,5 +64,27 @@ protected:
 
   sightedturtlesim::ImageWithPoseXYZ imageWithPoseMsg;
 };
+
+
+typedef struct _VisionTurtleState {
+  double x;
+  double y;
+  double orientRad;
+  int id;
+  unsigned int imWidth;
+  unsigned int imHeight;
+  double fps;
+  double z;
+  double s;
+
+  _VisionTurtleState() : x(0), y(0), orientRad(0), id(0),
+      imWidth(0), imHeight(0), fps(0), z(0), s(0) {};
+
+  _VisionTurtleState(VisionTurtle* t) :
+    x(t->x()), y(t->y()), orientRad(t->angleRad()), id(t->getID()),
+    imWidth(t->getImWidth()), imHeight(t->getImHeight()),
+    fps(t->getFPS()), z(t->z()), s(t->getScale()) {};
+} VisionTurtleState;
+
 
 #endif /* VISIONTURTLE_HPP_ */

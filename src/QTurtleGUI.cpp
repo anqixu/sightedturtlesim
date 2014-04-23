@@ -3,6 +3,7 @@
 #include "sightedturtlesim/QSpawnRobotDialog.hpp"
 #include "sightedturtlesim/SingleImageServer.hpp"
 #include "sightedturtlesim/TurtleFrame.hpp"
+#include "sightedturtlesim/PoseXYZ.h"
 #include <QtGui>
 #include <QAction>
 #include <QScrollBar>
@@ -178,13 +179,19 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
   if (imageServer != NULL &&
       ((SingleImageServer*) imageServer)->getImageFilename() == filename.toStdString() &&
       imageServer->pixelsPerMeter() == ppm) {
+    ROS_INFO_STREAM("Not re-loading same map: " << filename.toStdString() << " @ " <<
+        ppm << " pixels per meter resolution.");
     return true;
   }
 
   // Clear previous image server
+  std::vector<VisionTurtleState> existingTurtles;
   if (imageServer != NULL) {
     imageWidget->setRobotPtr(NULL);
     robotsMutex.lock();
+    for (std::pair<const std::string, Turtle*>& tp: robots->getTurtles()) {
+      existingTurtles.push_back(VisionTurtleState((VisionTurtle*) tp.second));
+    }
     delete robots;
     robots = NULL;
     robotsMutex.unlock();
@@ -206,6 +213,9 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
   robotsMutex.unlock();
   imageWidget->fromCVImage(imageServer->canvas());
   imageWidget->setRobotPtr(&robots->getTurtles());
+  for (VisionTurtleState& t: existingTurtles) {
+    spawnTurtle(t.x, t.y, t.z, t.orientRad, t.imWidth, t.imHeight, t.fps, t.s);
+  }
 
   // Configure GUI parameters
   scaleFactor = 1.0;
@@ -328,6 +338,7 @@ void QTurtleGUI::zoomIn() {
 void QTurtleGUI::zoomOut() {
   scaleImage(0.8);
 };
+
 
 void QTurtleGUI::normalSize() {
   scaleFactor = 1.0;
