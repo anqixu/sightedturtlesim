@@ -71,7 +71,14 @@ bool Turtle::teleportAbsoluteXYZCallback(
 void Turtle::update(double dt, double canvasWidth, double canvasHeight) {
   poseMutex.lock();
 
-  // first process any teleportation requests, in order
+  // Upon any teleportation request, robot's velocity is set to zero
+  if (!teleport_requests_.empty()) {
+    lin_vel_ = 0.0;
+    ang_vel_ = 0.0;
+    z_vel_ = 0.0;
+  }
+
+  // process all queued teleportation requests, in order
   std::vector<TeleportRequest>::iterator it = teleport_requests_.begin();
   std::vector<TeleportRequest>::iterator end = teleport_requests_.end();
   for (; it != end; it++) {
