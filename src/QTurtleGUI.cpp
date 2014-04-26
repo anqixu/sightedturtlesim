@@ -19,6 +19,10 @@
 #include <ros/package.h>
 #include <sys/socket.h>
 
+#include <opencv2/highgui/highgui.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/algorithm/string.hpp>
+
 
 // TODO: 9 add nodelet version of sightedturtlesim, with launch files
 
@@ -62,6 +66,32 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(), \
   local_node.param<double>("spin_rate_hz", spinRateHz, 100.0);
   if (spinRateHz < 50.) { spinRateHz = 50; }
   spinThread = boost::thread(boost::bind(&QTurtleGUI::spin, this));
+
+  // Load cached images
+  std::string fnameList = "";
+  local_node.param<std::string>("cached_image_fnames", fnameList, fnameList);
+  if (!fnameList.empty()) {
+    typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+    boost::char_separator<char> sep(";");
+    tokenizer tok(fnameList, sep);
+    std::string fname;
+    try {
+      for (tokenizer::iterator it = tok.begin(); it != tok.end(); it++) {
+        fname = *it;
+        boost::algorithm::trim(fname);
+        ROS_INFO_STREAM("Caching " << fname << "...");
+        cv::Mat canvas = cv::imread(fname, 1);
+        if (canvas.empty()) {
+          ROS_ERROR_STREAM("Unable to read image: " << fname);
+          continue;
+        }
+        cachedImageMaps.push_back(std::make_pair(fname, canvas));
+      }
+    } catch (const boost::bad_lexical_cast& ex) {
+      ROS_ERROR_STREAM("Could not parse cached_image_fnames: " << ex.what());
+    }
+    ROS_INFO_STREAM("Cached " << cachedImageMaps.size() << " images");
+  }
 
   // Process parameters for fast initialization
   std::string INIT_LoadSingleImageMap_path;
@@ -169,6 +199,7 @@ bool QTurtleGUI::loadSingleImageMapCB(
 
 
 bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
+  std::string filenameString = filename.toStdString();
   QFile file(filename);
   if (!file.exists()) {
     statusBar()->showMessage(tr("Could not load image %1.").arg(filename));
@@ -177,9 +208,9 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
 
   // Do not reset image server if new map / ppm is same as previous
   if (imageServer != NULL &&
-      ((SingleImageServer*) imageServer)->getImageFilename() == filename.toStdString() &&
+      ((SingleImageServer*) imageServer)->getImageFilename() == filenameString &&
       imageServer->pixelsPerMeter() == ppm) {
-    ROS_INFO_STREAM("Not re-loading same map: " << filename.toStdString() << " @ " <<
+    ROS_INFO_STREAM("Not re-loading same map: " << filenameString << " @ " <<
         ppm << " pixels per meter resolution.");
     return true;
   }
@@ -200,8 +231,18 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
 
   // Create new image server
   try {
-    imageServer = new SingleImageServer(filename.toStdString(), ppm);
-    imageWidget->setPixelsPerMeter(ppm);
+    bool hasCachedImage = false;
+    for (const std::pair<std::string, cv::Mat>& cache: cachedImageMaps) {
+      if (cache.first == filenameString) {
+        hasCachedImage = true;
+        imageServer = new SingleImageServer(cache.second, filenameString, ppm);
+        imageWidget->setPixelsPerMeter(ppm);
+      }
+    }
+    if (!hasCachedImage) {
+      imageServer = new SingleImageServer(filenameString, ppm);
+      imageWidget->setPixelsPerMeter(ppm);
+    }
   } catch (const std::string& err) {
     statusBar()->showMessage(QString::fromStdString(err));
     return false;

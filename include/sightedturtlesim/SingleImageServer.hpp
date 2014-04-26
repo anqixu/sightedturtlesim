@@ -13,6 +13,7 @@
 class SingleImageServer : public AbstractImageServer {
 public:
   SingleImageServer(const std::string& imageFilename, double ppm = 1.0);
+  SingleImageServer(cv::Mat cachedImage, const std::string& cachedImageFilename, double ppm);
   virtual ~SingleImageServer();
 
   // cornersXY = [topLeftX, topLeftY, topRightX, topRightY,

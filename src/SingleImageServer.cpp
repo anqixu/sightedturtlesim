@@ -23,8 +23,15 @@ SingleImageServer::SingleImageServer(const std::string& imageFilename, \
 };
 
 
-SingleImageServer::~SingleImageServer() {
+SingleImageServer::SingleImageServer(cv::Mat cachedImage,
+    const std::string& cachedImageFilename, double ppm) :
+    AbstractImageServer(ppm), _imageFilename(cachedImageFilename) {
+  _canvas = cachedImage;
+  setCanvasSize(_canvas.cols, _canvas.rows);
+};
 
+
+SingleImageServer::~SingleImageServer() {
 };
 
 

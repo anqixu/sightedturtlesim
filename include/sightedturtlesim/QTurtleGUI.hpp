@@ -11,6 +11,8 @@
 #include <sightedturtlesim/LoadSingleImageMap.h>
 #include <sightedturtlesim/Spawn.h>
 #include <sightedturtlesim/Kill.h>
+#include <opencv2/core/core.hpp>
+#include <utility>
 
 
 class QAction;
@@ -106,6 +108,8 @@ protected:
 
   static int sigintFd[2];
   QSocketNotifier* snSigint;
+
+  std::list< std::pair< std::string, cv::Mat > > cachedImageMaps;
 };
 
 
