@@ -53,11 +53,11 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(), \
 
   qRegisterMetaType<std::string>("std::string");
   connect(this, SIGNAL(requestLoadSingleImageMap(QString, double)),
-      this, SLOT(loadSingleImageMap(QString, double)));
+      this, SLOT(loadSingleImageMap(QString, double)), Qt::BlockingQueuedConnection);
   connect(this, SIGNAL(requestSpawnTurtle(double, double, double, double, unsigned int, unsigned int, double, double)),
-      this, SLOT(spawnTurtle(double, double, double, double, unsigned int, unsigned int, double, double)));
+      this, SLOT(spawnTurtle(double, double, double, double, unsigned int, unsigned int, double, double)), Qt::BlockingQueuedConnection);
   connect(this, SIGNAL(requestKillTurtle(const std::string&)),
-      this, SLOT(killTurtle(const std::string&)));
+      this, SLOT(killTurtle(const std::string&)), Qt::BlockingQueuedConnection);
 
   setWindowTitle(tr("Sighted Turtle Simulator"));
   resize(400, 300);
@@ -98,8 +98,8 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(), \
   double INIT_LoadSingleImageMap_pixelPerMeter;
   if (local_node.getParam("INIT_LoadSingleImageMap_path", INIT_LoadSingleImageMap_path) &&
       local_node.getParam("INIT_LoadSingleImageMap_pixelPerMeter", INIT_LoadSingleImageMap_pixelPerMeter)) {
-    emit requestLoadSingleImageMap(QString::fromStdString(INIT_LoadSingleImageMap_path),
-        INIT_LoadSingleImageMap_pixelPerMeter);
+    loadSingleImageMap(QString::fromStdString(INIT_LoadSingleImageMap_path),
+        INIT_LoadSingleImageMap_pixelPerMeter); // WARNING: do not emit signal since connection is blocking, so will cause deadlock
 
     double INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z, INIT_Spawn_theta, INIT_Spawn_scale, INIT_Spawn_imageFPS;
     int INIT_Spawn_imageWidth, INIT_Spawn_imageHeight;
@@ -111,9 +111,9 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(), \
         local_node.getParam("INIT_Spawn_imageWidth", INIT_Spawn_imageWidth) &&
         local_node.getParam("INIT_Spawn_imageHeight", INIT_Spawn_imageHeight) &&
         local_node.getParam("INIT_Spawn_imageFPS", INIT_Spawn_imageFPS)) {
-      emit requestSpawnTurtle(INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z,
+      spawnTurtle(INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z,
           INIT_Spawn_theta, INIT_Spawn_imageWidth, INIT_Spawn_imageHeight,
-          INIT_Spawn_imageFPS, INIT_Spawn_scale);
+          INIT_Spawn_imageFPS, INIT_Spawn_scale); // WARNING: do not emit signal since connection is blocking, so will cause deadlock
     }
   }
 };
@@ -193,8 +193,8 @@ void QTurtleGUI::open() {
 bool QTurtleGUI::loadSingleImageMapCB(
     sightedturtlesim::LoadSingleImageMap::Request& req,
     sightedturtlesim::LoadSingleImageMap::Response& res) {
-  //emit requestLoadSingleImageMap(QString::fromStdString(req.path), req.pixelPerMeter);
-  loadSingleImageMap(QString::fromStdString(req.path), req.pixelPerMeter); // Block until map has been loaded
+  emit requestLoadSingleImageMap(QString::fromStdString(req.path), req.pixelPerMeter);
+  //loadSingleImageMap(QString::fromStdString(req.path), req.pixelPerMeter); // WARNING: running Qt fns on spin thread can cause segfaults!
   return true;
 };
 
@@ -340,8 +340,8 @@ void QTurtleGUI::spawn() {
 
 bool QTurtleGUI::spawnCB(sightedturtlesim::Spawn::Request& req,
     sightedturtlesim::Spawn::Response& res) {
-  //emit requestSpawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI, req.imageWidth, req.imageHeight, req.imageFPS, req.scale);
-  spawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI, req.imageWidth, req.imageHeight, req.imageFPS, req.scale); // Block until turtle has been spawned
+  emit requestSpawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI, req.imageWidth, req.imageHeight, req.imageFPS, req.scale);
+  //spawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI, req.imageWidth, req.imageHeight, req.imageFPS, req.scale); // WARNING: running Qt fns on spin thread can cause segfaults!
   return true;
 };
 
