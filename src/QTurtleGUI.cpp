@@ -79,7 +79,7 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(), \
       for (tokenizer::iterator it = tok.begin(); it != tok.end(); it++) {
         fname = *it;
         boost::algorithm::trim(fname);
-        ROS_INFO_STREAM("Caching " << fname << "...");
+        ROS_INFO_STREAM("Caching simulator map " << fname << "...");
         cv::Mat canvas = cv::imread(fname, 1);
         if (canvas.empty()) {
           ROS_ERROR_STREAM("Unable to read image: " << fname);
@@ -156,7 +156,7 @@ void QTurtleGUI::spin() {
       sleepRate.sleep();
       boost::this_thread::interruption_point();
     }
-  } catch (boost::thread_interrupted err) {
+  } catch (const boost::thread_interrupted& err) {
   }
 };
 
@@ -193,16 +193,20 @@ void QTurtleGUI::open() {
 bool QTurtleGUI::loadSingleImageMapCB(
     sightedturtlesim::LoadSingleImageMap::Request& req,
     sightedturtlesim::LoadSingleImageMap::Response& res) {
-  emit requestLoadSingleImageMap(QString::fromStdString(req.path), req.pixelPerMeter);
+  //emit requestLoadSingleImageMap(QString::fromStdString(req.path), req.pixelPerMeter);
+  loadSingleImageMap(QString::fromStdString(req.path), req.pixelPerMeter); // Block until map has been loaded
   return true;
 };
 
 
 bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
   std::string filenameString = filename.toStdString();
+  ROS_INFO_STREAM("Received request to load new map: " << filenameString << " @ ppm=" << ppm);
+
   QFile file(filename);
   if (!file.exists()) {
     statusBar()->showMessage(tr("Could not load image %1.").arg(filename));
+    ROS_ERROR_STREAM("Could not load image: " << filenameString);
     return false;
   }
 
@@ -215,6 +219,7 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
     return true;
   }
 
+#ifdef RECREATE_TURTLES_IT_ADVERTISE_TAKES_LONG
   // Clear previous image server
   std::vector<VisionTurtleState> existingTurtles;
   if (imageServer != NULL) {
@@ -245,18 +250,62 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
     }
   } catch (const std::string& err) {
     statusBar()->showMessage(QString::fromStdString(err));
+    ROS_ERROR_STREAM("Failed to create new image server: " << err);
     return false;
   }
 
   // Hook up robots and images
   robotsMutex.lock();
-  robots = new TurtleFrame(node, imageServer);
+  if (robots == NULL) robots = new TurtleFrame(node, imageServer);
   robotsMutex.unlock();
   imageWidget->fromCVImage(imageServer->canvas());
   imageWidget->setRobotPtr(&robots->getTurtles());
   for (VisionTurtleState& t: existingTurtles) {
     spawnTurtle(t.x, t.y, t.z, t.orientRad, t.imWidth, t.imHeight, t.fps, t.s);
   }
+#else
+  if (imageServer != NULL) {
+    imageWidget->setRobotPtr(NULL);
+    robotsMutex.lock();
+    for (std::pair<const std::string, Turtle*>& tp: robots->getTurtles()) {
+      ((VisionTurtle*) tp.second)->stopThread();
+    }
+    robots->updateImageServer(NULL);
+    robotsMutex.unlock();
+    delete imageServer;
+  }
+
+  // Create new image server
+  try {
+    bool hasCachedImage = false;
+    for (const std::pair<std::string, cv::Mat>& cache: cachedImageMaps) {
+      if (cache.first == filenameString) {
+        hasCachedImage = true;
+        imageServer = new SingleImageServer(cache.second, filenameString, ppm);
+        imageWidget->setPixelsPerMeter(ppm);
+      }
+    }
+    if (!hasCachedImage) {
+      imageServer = new SingleImageServer(filenameString, ppm);
+      imageWidget->setPixelsPerMeter(ppm);
+    }
+  } catch (const std::string& err) {
+    statusBar()->showMessage(QString::fromStdString(err));
+    ROS_ERROR_STREAM("Failed to create new image server: " << err);
+    return false;
+  }
+
+  // Hook up robots and images
+  robotsMutex.lock();
+  if (robots == NULL) robots = new TurtleFrame(node, imageServer);
+  robots->updateImageServer(imageServer);
+  robotsMutex.unlock();
+  imageWidget->fromCVImage(imageServer->canvas());
+  imageWidget->setRobotPtr(&robots->getTurtles());
+  for (std::pair<const std::string, Turtle*>& tp: robots->getTurtles()) {
+    ((VisionTurtle*) tp.second)->restartThread(imageServer);
+  }
+#endif
 
   // Configure GUI parameters
   scaleFactor = 1.0;
@@ -268,6 +317,8 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
   fitToWindow();
   autoRefreshAct->setChecked(true);
   autoRefresh();
+
+  ROS_INFO_STREAM("New map loaded: " << filenameString << " @ ppm=" << ppm);
 
   return true;
 };
@@ -289,8 +340,8 @@ void QTurtleGUI::spawn() {
 
 bool QTurtleGUI::spawnCB(sightedturtlesim::Spawn::Request& req,
     sightedturtlesim::Spawn::Response& res) {
-  emit requestSpawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI,
-        req.imageWidth, req.imageHeight, req.imageFPS, req.scale);
+  //emit requestSpawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI, req.imageWidth, req.imageHeight, req.imageFPS, req.scale);
+  spawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI, req.imageWidth, req.imageHeight, req.imageFPS, req.scale); // Block until turtle has been spawned
   return true;
 };
 

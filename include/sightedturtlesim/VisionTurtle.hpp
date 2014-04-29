@@ -25,6 +25,9 @@ public:
       double s = 1.0);
   virtual ~VisionTurtle();
 
+  void stopThread();
+  void restartThread(AbstractImageServer* newServer);
+
   unsigned int getID() { return ID; };
 
   virtual int type() { return ID; };

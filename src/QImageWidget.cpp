@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <ros/package.h>
 #include <QColor>
+#include <opencv2/imgproc/imgproc.hpp>
 
 
 using namespace std;
@@ -12,7 +13,7 @@ using namespace std;
 #ifdef QT_USE_OPENGL
 QImageWidget::QImageWidget(QWidget* parent) : \
     QGLWidget(parent), imageLock(), imageBuffer(), drawBuffer(), \
-    buffer(NULL), bufferSize(0), greyscaleIndex(256), textFont(), \
+    buffer(NULL), bufferSize(0), bufferScale(1.0), greyscaleIndex(256), textFont(), \
     robots_(NULL), pixelsPerMeter(1.0), \
     selectedRobotName(""), \
     selectionInitMouseXPx(-1), selectionInitMouseYPx(-1), \
@@ -20,7 +21,7 @@ QImageWidget::QImageWidget(QWidget* parent) : \
 #else
   QImageWidget::QImageWidget(QWidget* parent) : \
     QWidget(parent), imageLock(), imageBuffer(), drawBuffer(), \
-    buffer(NULL), bufferSize(0), greyscaleIndex(256), textFont(), \
+    buffer(NULL), bufferSize(0), bufferScale(1.0), greyscaleIndex(256), textFont(), \
     robots_(NULL), pixelsPerMeter(1.0), \
     selectedRobotName(""), \
     selectionInitMouseXPx(-1), selectionInitMouseYPx(-1), \
@@ -115,11 +116,22 @@ void QImageWidget::fromROSImage(const sensor_msgs::Image::ConstPtr& rosimg) {
 };
 
 
-void QImageWidget::fromCVImage(const cv::Mat& cvimg) {
+void QImageWidget::fromCVImage(const cv::Mat& _cvimg) {
   // Check if image format is convertible to QImage
-  std::pair<QImage::Format, bool> imgFormat = depth2Format(cvimg.depth(), cvimg.channels());
+  std::pair<QImage::Format, bool> imgFormat = depth2Format(_cvimg.depth(), _cvimg.channels());
   if (imgFormat.first == QImage::Format_Invalid) {
     return;
+  }
+
+  // Downscale source image to keep memory footprint low
+  cv::Mat cvimg;
+  double scale = double(MAX_CANVAS_WIDTH_PX)/std::max(_cvimg.rows, _cvimg.cols);
+  if (scale > 0.0 && scale < 1.0) {
+    bufferScale = scale;
+    cv::resize(_cvimg, cvimg, cv::Size(), bufferScale, bufferScale, cv::INTER_NEAREST);
+  } else {
+    bufferScale = 1.0;
+    cvimg = _cvimg;
   }
 
   imageLock.lock();
@@ -216,7 +228,7 @@ void QImageWidget::paintEvent(QPaintEvent* event) {
       drawBuffer = imageBuffer.scaled(this->size(), Qt::KeepAspectRatio, \
           Qt::FastTransformation);
       painter.drawImage(0, 0, drawBuffer);
-      double imageScale = (double) drawBuffer.width() / imageBuffer.width();
+      double imageScale = (double) drawBuffer.width() / imageBuffer.width() * bufferScale;
       if (robots_ != NULL && robots_->size() > 0 && robot_images_.size() > 0) {
         double xPx, yPx, zPx;
         M_Turtle::iterator itRobots = robots_->begin();
@@ -320,7 +332,7 @@ void QImageWidget::mousePressEvent(QMouseEvent* event) {
     if (buffer != NULL && robots_ != NULL && robots_->size() > 0) {
       if (imageLock.timed_lock(boost::posix_time::milliseconds(1))) {
         if (robots_ != NULL && robots_->size() > 0) { // Re-confirm robot presence after lock
-          double imageScale = (double) drawBuffer.width() / imageBuffer.width();
+          double imageScale = (double) drawBuffer.width() / imageBuffer.width() * bufferScale;
           double xPx, yPx, distSqrd;
           std::string closestRobotName = "";
           double closestDistSqrd = std::numeric_limits<double>::infinity();
@@ -368,7 +380,7 @@ void QImageWidget::mouseMoveEvent(QMouseEvent* event) {
         Turtle* robot = it->second;
         if (event->buttons() & Qt::LeftButton) { // NOTE: implicit preference of left button over right button
           // Left button action: move robot's X/Y
-          double imageScale = (double) drawBuffer.width() / imageBuffer.width();
+          double imageScale = (double) drawBuffer.width() / imageBuffer.width() * bufferScale;
 
           double mouseXPx = event->x();
           double mouseYPx = event->y();

@@ -51,6 +51,8 @@ public:
   TurtleFrame(ros::NodeHandle& nh, AbstractImageServer* server);
   ~TurtleFrame();
 
+  void updateImageServer(AbstractImageServer* newServer) { imageServer = newServer; };
+
   std::string spawnTurtle(const std::string& name, double x, double y, double angle);
   std::string spawnVisionTurtle( \
       double x = 0.0, double y = 0.0, double z = 100.0, double angle = 0.0, \

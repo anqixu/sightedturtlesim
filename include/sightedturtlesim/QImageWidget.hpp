@@ -98,6 +98,7 @@ protected:
   QImage imageBuffer, drawBuffer;
   uint8_t* buffer;
   size_t bufferSize; // BIGGER or equals to (image's stride * image's height)
+  double bufferScale;
 
   QVector<QRgb> greyscaleIndex;
   QFont textFont;
@@ -122,6 +123,7 @@ protected:
 
   constexpr static unsigned int MIN_IMAGE_WIDTH_PX = 160;
   constexpr static unsigned int MIN_IMAGE_HEIGHT_PX = 120;
+  constexpr static unsigned int MAX_CANVAS_WIDTH_PX = 2000;
 };
 
 

@@ -42,7 +42,7 @@ TurtleFrame::TurtleFrame(ros::NodeHandle& nh, \
   //spawn_srv_ = nh_.advertiseService("spawn", &TurtleFrame::spawnCallback, this);
   //kill_srv_ = nh_.advertiseService("kill", &TurtleFrame::killCallback, this);
 
-  ROS_INFO_STREAM("Starting turtlesim with node name " << ros::this_node::getName()) ;
+  //ROS_INFO_STREAM("Starting turtlesim frame with node name " << ros::this_node::getName()) ;
 
   //spawnVisionTurtle();
 };
@@ -186,6 +186,8 @@ void TurtleFrame::reset() {
 
 
 void TurtleFrame::updateTurtles() {
+  if (imageServer == NULL) return;
+
   if (last_turtle_update_.isZero()) {
     last_turtle_update_ = ros::WallTime::now();
     return;

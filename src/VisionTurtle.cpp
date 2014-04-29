@@ -22,7 +22,7 @@ VisionTurtle::VisionTurtle(const ros::NodeHandle& nh,
         ID(id), imageSeqCount(0),
         hfovDeg(DEFAULT_HFOV_DEG), aspectRatio(DEFAULT_ASPECT_RATIO) {
   // Connect to ROS hooks
-  imagePub = imageTransport.advertise("image_raw", 1);
+  imagePub = imageTransport.advertise("image_raw", 1); // WARNING: this can take some time to start, e.g. ~1sec
   geolocatedImagePub = nh_.advertise<sightedturtlesim::ImageWithPoseXYZ>("image_xyz", 1);
   queryGeolocatedImageSrv = nh_.advertiseService("query_geolocated_image",
       &VisionTurtle::queryGeolocatedImageCallback, this);
@@ -45,14 +45,34 @@ VisionTurtle::VisionTurtle(const ros::NodeHandle& nh,
 
 
 VisionTurtle::~VisionTurtle() {
+  stopThread();
+};
+
+
+void VisionTurtle::stopThread() {
   alive = false;
   imageThread.interrupt();
   imageThread.join();
 };
 
 
+void VisionTurtle::restartThread(AbstractImageServer* newServer) {
+  if (alive) {
+    stopThread();
+  }
+  if (newServer != NULL) {
+    imageServer = newServer;
+  } else {
+    ROS_WARN_STREAM("VisionTurtle::restartThread called with newServer=NULL; not recommended; things may go wrong!");
+  }
+  alive = true;
+  imageThread = boost::thread(boost::bind(&VisionTurtle::imagePoller, this));
+};
+
+
 void VisionTurtle::imagePoller() {
   double cornersXYBuffer[8];
+  bool firstPoll = true; // always fetch new image upon start
 
   try {
     while (ros::ok() && alive) {
@@ -60,7 +80,7 @@ void VisionTurtle::imagePoller() {
         poseMutex.lock();
 
         // Check if current pose is same as previously published pose (which must have a populated image)
-        bool same = (
+        bool samePose = (
             (imageWithPoseMsg.pose.x == pos_.x) &&
             (imageWithPoseMsg.pose.y == pos_.y) &&
             (imageWithPoseMsg.pose.theta == orient_) &&
@@ -69,9 +89,13 @@ void VisionTurtle::imagePoller() {
             (imageWithPoseMsg.pose.z == z_) &&
             (imageWithPoseMsg.pose.linear_velocity_z == z_vel_) &&
             (imageWithPoseMsg.img.step * imageWithPoseMsg.img.width > 0));
+        if (firstPoll) {
+          samePose = false;
+          firstPoll = false;
+        }
 
         // Fetch new image if cache not found
-        if (!same) {
+        if (!samePose) {
           imageWithPoseMsg.pose.x = pos_.x;
           imageWithPoseMsg.pose.y = pos_.y;
           imageWithPoseMsg.pose.theta = orient_;
@@ -125,6 +149,11 @@ void VisionTurtle::imagePoller() {
 bool VisionTurtle::queryGeolocatedImageCallback(
     sightedturtlesim::QueryGeolocatedImage::Request& req,
     sightedturtlesim::QueryGeolocatedImage::Response& res) {
+  if (!alive) {
+    for (int i = 0; i < 8; i++) res.imgCornersXY[i] = 0;
+    return true;
+  }
+
   double cornersXYBuffer[8];
 
   poseMutex.lock();
