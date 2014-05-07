@@ -124,6 +124,7 @@ qt5_use_modules(tester Widgets)
 # Build test_query_geolocated_image
 add_executable(test_query_geolocated_image src/TestQueryGeolocatedImage.cpp)
 target_link_libraries(test_query_geolocated_image ${Boost_LIBS} ${OpenCV_LIBS} ${catkin_LIBRARIES})
+add_dependencies(test_query_geolocated_image ${PROJECT_NAME}_generate_messages_cpp)
 
 # Build GUI project
 add_executable(${PROJECT_NAME} ${GUI_SOURCES} ${GUI_QT_HEADERS} ${GUI_OTHER_HEADERS})
