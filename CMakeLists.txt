@@ -90,7 +90,7 @@ catkin_package(
 find_package(OpenCV 2.2 REQUIRED COMPONENTS core imgproc highgui)
 
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.46 REQUIRED COMPONENTS date_time-mt system-mt thread-mt)
+find_package(Boost 1.46 REQUIRED COMPONENTS date_time system thread)
 
 set(Qt5Widgets_DIR "${QT5_PATH}/lib/cmake/Qt5Widgets/")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
