@@ -54,6 +54,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   cv_bridge
   image_transport
+  turtlesim
   message_generation
   )
 
@@ -81,7 +82,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge image_transport message_runtime
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge image_transport turtlesim message_runtime
   )
 
 
