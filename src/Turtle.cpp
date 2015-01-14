@@ -115,6 +115,7 @@ void Turtle::update(double dt, double canvasWidth, double canvasHeight) {
   if (pos_.y < 0) { pos_.y += canvasHeight; }
 
   sightedturtlesim::PoseXYZ p;
+  p.header.stamp = ros::Time::now();
   p.x = pos_.x;
   p.y = pos_.y;
   p.theta = orient_;

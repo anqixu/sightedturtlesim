@@ -120,8 +120,9 @@ void VisionTurtle::imagePoller() {
         }
 
         // Update CV_Image's header, whether its image was updated or not
-        imageWithPoseMsg.pose.img_seq = image.header.seq = imageSeqCount++;
-        image.header.stamp = ros::Time::now();
+        imageWithPoseMsg.pose.header.seq = image.header.seq = imageSeqCount;
+        imageWithPoseMsg.pose.header.stamp = image.header.stamp = ros::Time::now();
+        imageSeqCount += 1;
 
         // Convert to ROS image buffer
         // NOTE: always storing to imageWithPoseMsg, to accommodate caching for queryGeolocatedImageCallback
