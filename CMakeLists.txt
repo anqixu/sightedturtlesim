@@ -1,5 +1,13 @@
 # Configure CMake settings
-cmake_minimum_required(VERSION 2.8.9) # needed for Qt5-related settings
+#cmake_minimum_required(VERSION 2.8.9) # needed for Qt5-related settings
+cmake_minimum_required(VERSION 2.8.7) # for 12.04 backwards compatibility
+set(BUILD_CORE_ONLY False)
+if (${CMAKE_VERSION} VERSION_LESS "2.8.9") # needed for Qt5-related settings
+  set(BUILD_CORE_ONLY True)
+  message(STATUS "Only building core msg/srv since cmake version < 2.8.9")
+else()
+  message(STATUS "DEBUG: building core and gui")
+endif()
 
 project(sightedturtlesim)
 
@@ -86,7 +94,8 @@ catkin_package(
   )
 
 
-
+if(${BUILD_CORE_ONLY})
+else()
 # Load other libraries and dependencies
 find_package(OpenCV 2.2 REQUIRED COMPONENTS core imgproc highgui)
 
@@ -148,3 +157,4 @@ install(DIRECTORY include/${PROJECT_NAME}/
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
   )
+endif()
