@@ -4,9 +4,9 @@ cmake_minimum_required(VERSION 2.8.7) # for 12.04 backwards compatibility
 set(BUILD_CORE_ONLY False)
 if (${CMAKE_VERSION} VERSION_LESS "2.8.9") # needed for Qt5-related settings
   set(BUILD_CORE_ONLY True)
-  message(STATUS "Only building core msg/srv since cmake version < 2.8.9")
+  message(STATUS "sightedturtlesim: only building core msg/srv since cmake version < 2.8.9")
 else()
-  message(STATUS "DEBUG: building core and gui")
+  message(STATUS "sightedturtlesim: building core and gui")
 endif()
 
 project(sightedturtlesim)
