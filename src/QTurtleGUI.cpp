@@ -29,7 +29,7 @@
 int QTurtleGUI::sigintFd[2];
 
 
-QTurtleGUI::QTurtleGUI() : QMainWindow(), \
+QTurtleGUI::QTurtleGUI() : QMainWindow(),
     node(), local_node("~"), imageServer(NULL), robots(NULL), robotsMutex(), spinRateHz(100) {
   if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sigintFd)) {
     qFatal("Could not create SIGINT socketpair for Qt");
@@ -167,7 +167,7 @@ void QTurtleGUI::handleSigint() {
 
 
 void QTurtleGUI::open() {
-  QString fileName = QFileDialog::getOpenFileName(this, \
+  QString fileName = QFileDialog::getOpenFileName(this,
       tr("Open File"), QDir::currentPath());
   if (!fileName.isEmpty()) {
     QFile file(fileName);
@@ -178,8 +178,8 @@ void QTurtleGUI::open() {
 
     // Query pixelsPerMeter
     bool ok = false;
-    double ppm = QInputDialog::getDouble(this, tr("Specify Image Scale"), \
-        tr("Please specify image scale, in pixels per meters: "), \
+    double ppm = QInputDialog::getDouble(this, tr("Specify Image Scale"),
+        tr("Please specify image scale, in pixels per meters: "),
         1.0, 0.0, std::numeric_limits<double>::max(), 4, &ok);
     if (!ok || ppm <= 0.0) {
       return;
@@ -391,7 +391,7 @@ void QTurtleGUI::kill() {
   }
 
   bool ok = false;
-  QString selectedRobot = QInputDialog::getItem(this, tr("Kill Robot"), \
+  QString selectedRobot = QInputDialog::getItem(this, tr("Kill Robot"),
       tr("Select robot to be killed:"), robotIDs, 0, false, &ok);
   if (ok) {
     killTurtle(selectedRobot.toStdString());

@@ -34,8 +34,8 @@
 #include <ctime>
 
 
-TurtleFrame::TurtleFrame(ros::NodeHandle& nh, \
-    AbstractImageServer* server) : nh_(nh), \
+TurtleFrame::TurtleFrame(ros::NodeHandle& nh,
+    AbstractImageServer* server) : nh_(nh),
     freeRobotID(1), imageServer(server), turtlesMutex() {
   //clear_srv_ = nh_.advertiseService("clear", &TurtleFrame::clearCallback, this);
   reset_srv_ = nh_.advertiseService("reset", &TurtleFrame::resetCallback, this);
@@ -53,7 +53,7 @@ TurtleFrame::~TurtleFrame() {
 };
 
 
-bool TurtleFrame::spawnCallback(turtlesim::Spawn::Request& req, \
+bool TurtleFrame::spawnCallback(turtlesim::Spawn::Request& req,
     turtlesim::Spawn::Response& res) {
   std::string name = spawnTurtle(req.name, req.x, req.y, req.theta);
   if (name.empty()) {
@@ -65,7 +65,7 @@ bool TurtleFrame::spawnCallback(turtlesim::Spawn::Request& req, \
 };
 
 
-bool TurtleFrame::killCallback(turtlesim::Kill::Request& req, \
+bool TurtleFrame::killCallback(turtlesim::Kill::Request& req,
     turtlesim::Kill::Response&) {
   bool result = false;
 
@@ -116,7 +116,7 @@ bool TurtleFrame::hasTurtle(const std::string& name) {
 };
 
 
-std::string TurtleFrame::spawnTurtle(const std::string& name, \
+std::string TurtleFrame::spawnTurtle(const std::string& name,
     double x, double y, double angle) {
   Turtle* t;
   std::string real_name = name;
@@ -126,7 +126,7 @@ std::string TurtleFrame::spawnTurtle(const std::string& name, \
       ss << "turtle" << freeRobotID++;
       real_name = ss.str();
     } while (hasTurtle(real_name));
-    t = new VisionTurtle(ros::NodeHandle(real_name), Vector2(x, y), angle, \
+    t = new VisionTurtle(ros::NodeHandle(real_name), Vector2(x, y), angle,
         imageServer, freeRobotID - 1);
   } else {
     if (hasTurtle(real_name)) {
@@ -139,28 +139,28 @@ std::string TurtleFrame::spawnTurtle(const std::string& name, \
   turtles_[real_name] = t;
   turtlesMutex.unlock();
 
-  ROS_INFO_STREAM("Spawning turtle [" << real_name << "] at x=[" << x << \
+  ROS_INFO_STREAM("Spawning turtle [" << real_name << "] at x=[" << x <<
       "], y=[" << y << "], theta=[" << angle << "]");
 
   return real_name;
 };
 
 
-std::string TurtleFrame::spawnVisionTurtle(double x, double y, double z, \
+std::string TurtleFrame::spawnVisionTurtle(double x, double y, double z,
     double angle, unsigned int camW, unsigned int camH, double fps, double scale) {
   std::string real_name;
   do {
     real_name = "turtle" + boost::lexical_cast<std::string>(freeRobotID++);
   } while (hasTurtle(real_name));
 
-  Turtle* t = new VisionTurtle(ros::NodeHandle(real_name), Vector2(x, y), \
+  Turtle* t = new VisionTurtle(ros::NodeHandle(real_name), Vector2(x, y),
       angle, imageServer, freeRobotID - 1, camW, camH, fps, z, scale);
 
   turtlesMutex.lock();
   turtles_[real_name] = t;
   turtlesMutex.unlock();
 
-  ROS_INFO_STREAM("Spawning turtle [" << real_name << "] at x=[" << x << \
+  ROS_INFO_STREAM("Spawning turtle [" << real_name << "] at x=[" << x <<
       "], y=[" << y << "], theta=[" << angle << "]");
 
   return real_name;
@@ -200,15 +200,15 @@ void TurtleFrame::updateTurtles() {
   M_Turtle::iterator itTurtles = turtles_.begin();
   M_Turtle::iterator itTurtlesEnd = turtles_.end();
   for (; itTurtles != itTurtlesEnd; itTurtles++) {
-    itTurtles->second->update(td.toSec(), \
-        imageServer->width() / imageServer->pixelsPerMeter(), \
+    itTurtles->second->update(td.toSec(),
+        imageServer->width() / imageServer->pixelsPerMeter(),
         imageServer->height() / imageServer->pixelsPerMeter());
   }
   turtlesMutex.unlock();
 };
 
 
-bool TurtleFrame::clearCallback(std_srvs::Empty::Request&, \
+bool TurtleFrame::clearCallback(std_srvs::Empty::Request&,
     std_srvs::Empty::Response&) {
   ROS_INFO("Clearing turtlesim.");
   clear();
@@ -216,7 +216,7 @@ bool TurtleFrame::clearCallback(std_srvs::Empty::Request&, \
 };
 
 
-bool TurtleFrame::resetCallback(std_srvs::Empty::Request&, \
+bool TurtleFrame::resetCallback(std_srvs::Empty::Request&,
     std_srvs::Empty::Response&) {
   ROS_INFO("Resetting turtlesim.");
   reset();

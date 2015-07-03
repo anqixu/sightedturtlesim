@@ -54,11 +54,11 @@ public:
   void updateImageServer(AbstractImageServer* newServer) { imageServer = newServer; };
 
   std::string spawnTurtle(const std::string& name, double x, double y, double angle);
-  std::string spawnVisionTurtle( \
-      double x = 0.0, double y = 0.0, double z = 100.0, double angle = 0.0, \
-      unsigned int camW = VisionTurtle::DEFAULT_IMAGE_WIDTH, \
-      unsigned int camH = VisionTurtle::DEFAULT_IMAGE_HEIGHT, \
-      double fps = VisionTurtle::DEFAULT_FPS, \
+  std::string spawnVisionTurtle(
+      double x = 0.0, double y = 0.0, double z = 100.0, double angle = 0.0,
+      unsigned int camW = VisionTurtle::DEFAULT_IMAGE_WIDTH,
+      unsigned int camH = VisionTurtle::DEFAULT_IMAGE_HEIGHT,
+      double fps = VisionTurtle::DEFAULT_FPS,
       double scale = 1.0);
 
   bool deleteTurtle(const std::string& name);

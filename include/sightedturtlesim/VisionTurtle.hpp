@@ -15,13 +15,13 @@ class AbstractImageServer;
 
 class VisionTurtle : public Turtle {
 public:
-  VisionTurtle(const ros::NodeHandle& nh, \
-      const Vector2& pos, double orientRad, \
-      AbstractImageServer* server, \
-      unsigned int id = 0, \
-      unsigned int imWidth = DEFAULT_IMAGE_WIDTH, \
-      unsigned int imHeight = DEFAULT_IMAGE_HEIGHT, \
-      double fps = DEFAULT_FPS, double z = 250.0, \
+  VisionTurtle(const ros::NodeHandle& nh,
+      const Vector2& pos, double orientRad,
+      AbstractImageServer* server,
+      unsigned int id = 0,
+      unsigned int imWidth = DEFAULT_IMAGE_WIDTH,
+      unsigned int imHeight = DEFAULT_IMAGE_HEIGHT,
+      double fps = DEFAULT_FPS, double z = 250.0,
       double s = 1.0);
   virtual ~VisionTurtle();
 
@@ -45,8 +45,8 @@ public:
 protected:
   void imagePoller();
 
-  bool queryGeolocatedImageCallback( \
-      sightedturtlesim::QueryGeolocatedImage::Request&, \
+  bool queryGeolocatedImageCallback(
+      sightedturtlesim::QueryGeolocatedImage::Request&,
       sightedturtlesim::QueryGeolocatedImage::Response&);
 
   image_transport::ImageTransport imageTransport;

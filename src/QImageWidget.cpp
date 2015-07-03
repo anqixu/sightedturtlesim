@@ -11,20 +11,20 @@ using namespace std;
 
 
 #ifdef QT_USE_OPENGL
-QImageWidget::QImageWidget(QWidget* parent) : \
-    QGLWidget(parent), imageLock(), imageBuffer(), drawBuffer(), \
-    buffer(NULL), bufferSize(0), bufferScale(1.0), greyscaleIndex(256), textFont(), \
-    robots_(NULL), pixelsPerMeter(1.0), \
-    selectedRobotName(""), \
-    selectionInitMouseXPx(-1), selectionInitMouseYPx(-1), \
+QImageWidget::QImageWidget(QWidget* parent) :
+    QGLWidget(parent), imageLock(), imageBuffer(), drawBuffer(),
+    buffer(NULL), bufferSize(0), bufferScale(1.0), greyscaleIndex(256), textFont(),
+    robots_(NULL), pixelsPerMeter(1.0),
+    selectedRobotName(""),
+    selectionInitMouseXPx(-1), selectionInitMouseYPx(-1),
     selectionInitRobotZ(0), selectionInitRobotAngleRad(0) {
 #else
-  QImageWidget::QImageWidget(QWidget* parent) : \
-    QWidget(parent), imageLock(), imageBuffer(), drawBuffer(), \
-    buffer(NULL), bufferSize(0), bufferScale(1.0), greyscaleIndex(256), textFont(), \
-    robots_(NULL), pixelsPerMeter(1.0), \
-    selectedRobotName(""), \
-    selectionInitMouseXPx(-1), selectionInitMouseYPx(-1), \
+  QImageWidget::QImageWidget(QWidget* parent) :
+    QWidget(parent), imageLock(), imageBuffer(), drawBuffer(),
+    buffer(NULL), bufferSize(0), bufferScale(1.0), greyscaleIndex(256), textFont(),
+    robots_(NULL), pixelsPerMeter(1.0),
+    selectedRobotName(""),
+    selectionInitMouseXPx(-1), selectionInitMouseYPx(-1),
     selectionInitRobotZ(0), selectionInitRobotAngleRad(0) {
 #endif
   // Initialize greyscale color indices
@@ -39,10 +39,10 @@ QImageWidget::QImageWidget(QWidget* parent) : \
     "turtle.png"
   };
   Qt::GlobalColor colors[5] = {
-      Qt::green, \
-      Qt::cyan, \
-      Qt::blue, \
-      Qt::magenta, \
+      Qt::green,
+      Qt::cyan,
+      Qt::blue,
+      Qt::magenta,
       Qt::gray
   };
 
@@ -100,7 +100,7 @@ void QImageWidget::fromROSImage(const sensor_msgs::Image::ConstPtr& rosimg) {
   std::copy(rosimg->data.begin(), rosimg->data.end(), buffer);
 
   // Create new QImage from buffer (i.e. create soft wrapper)
-  imageBuffer = QImage((uchar*) buffer, rosimg->width, rosimg->height, \
+  imageBuffer = QImage((uchar*) buffer, rosimg->width, rosimg->height,
       rosimg->step, imgFormat.first);
   if (imgFormat.second) {
     imageBuffer = imageBuffer.rgbSwapped();
@@ -147,7 +147,7 @@ void QImageWidget::fromCVImage(const cv::Mat& _cvimg) {
   memcpy(buffer, cvimg.data, newBufferSize);
 
   // Create new QImage from buffer (i.e. create soft wrapper)
-  imageBuffer = QImage((uchar*) buffer, cvimg.cols, cvimg.rows, \
+  imageBuffer = QImage((uchar*) buffer, cvimg.cols, cvimg.rows,
       cvimg.step, imgFormat.first);
   if (imgFormat.second) {
     imageBuffer = imageBuffer.rgbSwapped();
@@ -204,7 +204,7 @@ void QImageWidget::paintGL() {
     glEnable(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D( GL_TEXTURE_2D, 0, 4, drawBuffer.width(), drawBuffer.height(), \
+    glTexImage2D( GL_TEXTURE_2D, 0, 4, drawBuffer.width(), drawBuffer.height(),
         0, GL_RGBA, GL_UNSIGNED_BYTE, drawBuffer.bits());
     glBegin(GL_QUADS);
     glTexCoord2f(0,0); glVertex2f(0, imageSize.height());
@@ -225,7 +225,7 @@ void QImageWidget::paintEvent(QPaintEvent* event) {
   // before painting it on screen
   if (buffer != NULL) {
     if (imageLock.timed_lock(boost::posix_time::milliseconds(50))) {
-      drawBuffer = imageBuffer.scaled(this->size(), Qt::KeepAspectRatio, \
+      drawBuffer = imageBuffer.scaled(this->size(), Qt::KeepAspectRatio,
           Qt::FastTransformation);
       painter.drawImage(0, 0, drawBuffer);
       double imageScale = (double) drawBuffer.width() / imageBuffer.width() * bufferScale;
@@ -238,25 +238,25 @@ void QImageWidget::paintEvent(QPaintEvent* event) {
           xPx = robot->x() * pixelsPerMeter * imageScale;
           yPx = robot->y() * pixelsPerMeter * imageScale;
           zPx = robot->z() * pixelsPerMeter * imageScale;
-          std::pair<QImage, enum Qt::GlobalColor>& currImagePair = \
+          std::pair<QImage, enum Qt::GlobalColor>& currImagePair =
               robot_images_[robot->type() % robot_images_.size()];
-          QImage robotImage = currImagePair.first.transformed( \
+          QImage robotImage = currImagePair.first.transformed(
               QMatrix().rotate(-robot->angleDeg() + 90.0), Qt::FastTransformation);
-          painter.drawImage(round(xPx - robotImage.width()/2.0), \
+          painter.drawImage(round(xPx - robotImage.width()/2.0),
               round(yPx - robotImage.height()/2.0), robotImage);
-          AbstractImageServer::toCornersXY(xPx, yPx, \
-              -robot->angleDeg() + 90.0, zPx, VisionTurtle::DEFAULT_HFOV_DEG, \
+          AbstractImageServer::toCornersXY(xPx, yPx,
+              -robot->angleDeg() + 90.0, zPx, VisionTurtle::DEFAULT_HFOV_DEG,
               VisionTurtle::DEFAULT_ASPECT_RATIO, cornersBuffer);
-          painter.setPen(QPen(currImagePair.second, \
-              std::max(1, (int) (std::min(this->width(), this->height()) / 250.0)), \
+          painter.setPen(QPen(currImagePair.second,
+              std::max(1, (int) (std::min(this->width(), this->height()) / 250.0)),
               Qt::DashLine));
-          painter.drawLine(round(cornersBuffer[0]), round(cornersBuffer[1]), \
+          painter.drawLine(round(cornersBuffer[0]), round(cornersBuffer[1]),
               round(cornersBuffer[2]), round(cornersBuffer[3]));
-          painter.drawLine(round(cornersBuffer[2]), round(cornersBuffer[3]), \
+          painter.drawLine(round(cornersBuffer[2]), round(cornersBuffer[3]),
               round(cornersBuffer[4]), round(cornersBuffer[5]));
-          painter.drawLine(round(cornersBuffer[4]), round(cornersBuffer[5]), \
+          painter.drawLine(round(cornersBuffer[4]), round(cornersBuffer[5]),
               round(cornersBuffer[6]), round(cornersBuffer[7]));
-          painter.drawLine(round(cornersBuffer[6]), round(cornersBuffer[7]), \
+          painter.drawLine(round(cornersBuffer[6]), round(cornersBuffer[7]),
               round(cornersBuffer[0]), round(cornersBuffer[1]));
         }
 
@@ -306,7 +306,7 @@ std::pair<QImage::Format, bool> QImageWidget::encoding2Format(const std::string&
 };
 
 
-std::pair<QImage::Format, bool> QImageWidget::depth2Format(const int depth, \
+std::pair<QImage::Format, bool> QImageWidget::depth2Format(const int depth,
     const int channels) {
   if (channels == 1) {
     if (depth == CV_8UC1) return std::make_pair(QImage::Format_Indexed8, false);

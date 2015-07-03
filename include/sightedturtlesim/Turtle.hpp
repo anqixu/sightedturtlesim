@@ -50,8 +50,8 @@ struct Vector2 {
 
 
 struct TeleportRequest {
-  TeleportRequest(double x, double y, double _theta, double _linear, \
-      bool _relative) : pos(x, y), theta(_theta), linear(_linear), \
+  TeleportRequest(double x, double y, double _theta, double _linear,
+      bool _relative) : pos(x, y), theta(_theta), linear(_linear),
       relative(_relative) {};
   Vector2 pos;
   double theta;
@@ -62,7 +62,7 @@ struct TeleportRequest {
 
 class Turtle {
 public:
-  Turtle(const ros::NodeHandle& nh, const Vector2& pos, double orientRad, \
+  Turtle(const ros::NodeHandle& nh, const Vector2& pos, double orientRad,
       double z = 250.0, double s = 1.0);
   virtual ~Turtle();
   virtual void update(double dt, double canvasWidth, double canvasHeight);
@@ -90,8 +90,8 @@ public:
 
 protected:
   void velocityXYZCallback(const sightedturtlesim::VelocityXYZConstPtr& msg);
-  bool teleportAbsoluteXYZCallback( \
-      sightedturtlesim::TeleportAbsoluteXYZ::Request&, \
+  bool teleportAbsoluteXYZCallback(
+      sightedturtlesim::TeleportAbsoluteXYZ::Request&,
       sightedturtlesim::TeleportAbsoluteXYZ::Response&);
 
   ros::NodeHandle nh_;

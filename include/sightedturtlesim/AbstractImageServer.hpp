@@ -17,9 +17,9 @@ public:
   virtual void getImage(double* cornersXY, cv::Mat& buffer) = 0;
 
   // NOTE: if !buffer.empty(), then resulting image size = buffer.size()
-  virtual void getImage(double x, double y, double upDeg, \
+  virtual void getImage(double x, double y, double upDeg,
       cv::Mat& buffer, double camW = 0, double camH = 0) = 0;
-  void getImage(double x, double y, double upDeg, \
+  void getImage(double x, double y, double upDeg,
       double z, double hfovDeg, double aspectRatio, cv::Mat& buffer) {
     double camW = z * atan(hfovDeg / 90.0 * M_PI);
     double camH = camW / aspectRatio;
@@ -36,9 +36,9 @@ public:
   double pixelsPerMeter() { return _pixelsPerMeter; };
   void setCanvasSize(long long w, long long h) { _width = w; _height = h; };
 
-  static void toCornersXY(double x, double y, double headingDeg, \
+  static void toCornersXY(double x, double y, double headingDeg,
       double z, double hfovDeg, double aspectRatio, double* cornersXYBuffer);
-  static void toCornersXY(double x, double y, double headingDeg, \
+  static void toCornersXY(double x, double y, double headingDeg,
       double camW, double camH, double* cornersXYBuffer);
 
   // If the desired camera dimensions (with respect to the canvas dimensions)

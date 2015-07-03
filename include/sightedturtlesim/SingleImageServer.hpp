@@ -23,7 +23,7 @@ public:
   virtual void getImage(double* cornersXY, cv::Mat& buffer);
 
   // NOTE: if !buffer.empty(), then resulting image size = buffer.size()
-  virtual void getImage(double x, double y, double upDeg, \
+  virtual void getImage(double x, double y, double upDeg,
       cv::Mat& buffer, double camW = 0, double camH = 0);
 
   virtual const cv::Mat& canvas() { return _canvas; };

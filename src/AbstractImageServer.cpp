@@ -2,7 +2,7 @@
 #include <cmath>
 
 
-AbstractImageServer::AbstractImageServer(double ppm) : \
+AbstractImageServer::AbstractImageServer(double ppm) :
     _width(0), _height(0), _pixelsPerMeter(ppm) {
 
 };
@@ -13,7 +13,7 @@ AbstractImageServer::~AbstractImageServer() {
 };
 
 
-void AbstractImageServer::toCornersXY(double x, double y, double headingDeg, \
+void AbstractImageServer::toCornersXY(double x, double y, double headingDeg,
       double z, double hfovDeg, double aspectRatio, double* cornersXYBuffer) {
   double camW = z * atan(hfovDeg / 90.0 * M_PI);
   double camH = camW / aspectRatio;
@@ -21,7 +21,7 @@ void AbstractImageServer::toCornersXY(double x, double y, double headingDeg, \
 };
 
 
-void AbstractImageServer::toCornersXY(double x, double y, double headingDeg, \
+void AbstractImageServer::toCornersXY(double x, double y, double headingDeg,
       double camW, double camH, double* cornersXYBuffer) {
   double thetaRad = -headingDeg/180.0*M_PI;
   cv::Mat camTransform(2, 2, CV_64FC1);

@@ -11,8 +11,8 @@
 using namespace cv;
 
 
-SingleImageServer::SingleImageServer(const std::string& imageFilename, \
-    double ppm) : \
+SingleImageServer::SingleImageServer(const std::string& imageFilename,
+    double ppm) :
     AbstractImageServer(ppm), _imageFilename() {
   _canvas = cv::imread(imageFilename, 1);
   if (_canvas.empty()) {

@@ -42,9 +42,9 @@ int main(int argc, char** argv) {
       imshow("image", buffer);
 
       std::ostringstream oss;
-      oss << "Fetched " << buffer.cols << " x " << buffer.rows << \
-         " image @ (" << x << ", " << y <<") & " << upDeg << \
-         "' from " << server.width() << " x " << server.height() << \
+      oss << "Fetched " << buffer.cols << " x " << buffer.rows <<
+         " image @ (" << x << ", " << y <<") & " << upDeg <<
+         "' from " << server.width() << " x " << server.height() <<
          " canvas in " << td.total_microseconds() / 1000.0 << " ms";
       displayOverlay("image", oss.str(), 10000);
 
