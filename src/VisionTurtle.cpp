@@ -15,9 +15,10 @@ bool eq(const sightedturtlesim::PoseXYZ& a, const sightedturtlesim::PoseXYZ& b) 
 
 VisionTurtle::VisionTurtle(const ros::NodeHandle& nh,
     const sightedturtlesim::PoseXYZ& initPose,
+    const sightedturtlesim::TurtleParams& params,
     AbstractImageServer* server, unsigned int id,
     unsigned int imWidth, unsigned int imHeight,
-    double fps, double scale) : Turtle(nh, initPose, scale),
+    double fps) : Turtle(nh, initPose, params),
         imageTransport(nh_), imageRate(fps),
         imageServer(server), imageThread(),
         ID(id), imageSeqCount(0),

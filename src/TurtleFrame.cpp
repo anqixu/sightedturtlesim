@@ -86,8 +86,10 @@ std::string TurtleFrame::spawnVisionTurtle(double x, double y, double z,
 
   sightedturtlesim::PoseXYZ initPose;
   initPose.x = x; initPose.y = y; initPose.z = z; initPose.theta = theta;
-  Turtle* t = new VisionTurtle(ros::NodeHandle(real_name), initPose,
-      imageServer, freeRobotID - 1, camW, camH, fps, scale);
+  sightedturtlesim::TurtleParams params;
+  params.spatial_scale = scale; params.ctrl_mode = sightedturtlesim::TurtleParams::VELOCITY_CTRL_MODE;
+  Turtle* t = new VisionTurtle(ros::NodeHandle(real_name), initPose, params,
+      imageServer, freeRobotID - 1, camW, camH, fps);
 
   turtlesMutex.lock();
   turtles_[real_name] = t;

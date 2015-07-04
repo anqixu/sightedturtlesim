@@ -35,15 +35,18 @@
 #include <ros/ros.h>
 #include <mutex>
 
-#include <turtlesim/Pose.h>
 #include <sightedturtlesim/PoseXYZ.h>
+#include <sightedturtlesim/TurtleParams.h>
 #include <sightedturtlesim/VelocityXYZ.h>
+#include <sightedturtlesim/DriveXYZ.h>
 #include <sightedturtlesim/TeleportAbsoluteXYZ.h>
+#include <sightedturtlesim/SetTurtleParams.h>
 
 
 class Turtle {
 public:
-  Turtle(const ros::NodeHandle& nh, const sightedturtlesim::PoseXYZ& initPose, double s = 1.0);
+  Turtle(const ros::NodeHandle& nh, const sightedturtlesim::PoseXYZ& initPose,
+      const sightedturtlesim::TurtleParams& params);
   virtual ~Turtle();
   virtual void update(double dt, double canvasWidth, double canvasHeight);
 
@@ -52,13 +55,13 @@ public:
     pos_ = newPose;
     poseMutex.unlock();
   };
-  void setPose(double x, double y, double z, double theta, bool resetVel = false) {
+  void setPose(double x, double y, double z, double theta, bool resetSpeed = false) {
     poseMutex.lock();
     pos_.x = x;
     pos_.y = y;
     pos_.z = z;
     pos_.theta = theta;
-    if (resetVel) {
+    if (resetSpeed) {
       pos_.linear_velocity = 0;
       pos_.linear_velocity_z = 0;
       pos_.angular_velocity = 0;
@@ -75,24 +78,29 @@ public:
 
   virtual int type() { return 0; };
 
-  double getScale() { return scale; };
+  double getScale() { return params_.spatial_scale; };
 
 protected:
   void velocityXYZCallback(const sightedturtlesim::VelocityXYZ::ConstPtr& msg);
   bool teleportAbsoluteXYZCallback(
       sightedturtlesim::TeleportAbsoluteXYZ::Request&,
       sightedturtlesim::TeleportAbsoluteXYZ::Response&);
+  bool setParamsCallback(
+      sightedturtlesim::SetTurtleParams::Request&,
+      sightedturtlesim::SetTurtleParams::Response&);
 
   ros::NodeHandle nh_;
 
   sightedturtlesim::PoseXYZ pos_;
-  double scale;
+  sightedturtlesim::TurtleParams params_;
 
   bool alive;
 
   ros::Subscriber velocity_xyz_sub_;
   ros::Publisher pose_xyz_pub_;
+  ros::Publisher params_pub_;
   ros::ServiceServer teleport_absolute_xyz_srv_;
+  ros::ServiceServer set_params_srv_;
 
   ros::WallTime last_command_time_;
 

@@ -62,7 +62,6 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   cv_bridge
   image_transport
-  turtlesim
   message_generation
   )
 
@@ -71,6 +70,8 @@ add_message_files(
   PoseXYZ.msg
   ImageWithPoseXYZ.msg
   VelocityXYZ.msg
+  DriveXYZ.msg
+  TurtleParams.msg
   )
 
 add_service_files(
@@ -80,6 +81,7 @@ add_service_files(
   Kill.srv
   QueryGeolocatedImage.srv
   TeleportAbsoluteXYZ.srv
+  SetTurtleParams.srv
   )
 
 generate_messages(
@@ -90,7 +92,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge image_transport turtlesim message_runtime
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge image_transport message_runtime
   )
 
 
@@ -142,9 +144,9 @@ add_dependencies(test_query_geolocated_image ${PROJECT_NAME}_generate_messages_c
 
 # Build GUI project
 add_executable(${PROJECT_NAME} ${GUI_SOURCES} ${GUI_QT_HEADERS} ${GUI_OTHER_HEADERS})
-set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC TRUE)
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp) # Note: sometimes AUTOMOC does not ...
+set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC TRUE) # ... respect the above dependency
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBS} ${OpenCV_LIBS} ${catkin_LIBRARIES} ${QT_LIBRARIES})
-add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 qt5_use_modules(${PROJECT_NAME} Widgets)
 
 

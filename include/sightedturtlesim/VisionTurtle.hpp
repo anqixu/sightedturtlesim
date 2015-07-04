@@ -17,12 +17,12 @@ class VisionTurtle : public Turtle {
 public:
   VisionTurtle(const ros::NodeHandle& nh,
       const sightedturtlesim::PoseXYZ& initPose,
+      const sightedturtlesim::TurtleParams& params,
       AbstractImageServer* server,
       unsigned int id = 0,
       unsigned int imWidth = DEFAULT_IMAGE_WIDTH,
       unsigned int imHeight = DEFAULT_IMAGE_HEIGHT,
-      double fps = DEFAULT_FPS,
-      double scale = 1.0);
+      double fps = DEFAULT_FPS);
   virtual ~VisionTurtle();
 
   void stopThread();

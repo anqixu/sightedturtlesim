@@ -31,12 +31,18 @@
 #include "sightedturtlesim/Turtle.hpp"
 
 
-Turtle::Turtle(const ros::NodeHandle& nh, const sightedturtlesim::PoseXYZ& initPose, double s) :
-    nh_(nh), pos_(initPose), scale(s), alive(true) {
+Turtle::Turtle(const ros::NodeHandle& nh, const sightedturtlesim::PoseXYZ& initPose,
+    const sightedturtlesim::TurtleParams& params) :
+    nh_(nh), pos_(initPose), params_(params), alive(true) {
   velocity_xyz_sub_ = nh_.subscribe("command_velocity_xyz", 1, &Turtle::velocityXYZCallback, this);
   pose_xyz_pub_ = nh_.advertise<sightedturtlesim::PoseXYZ>("pose_xyz", 1);
+  params_pub_ = nh_.advertise<sightedturtlesim::TurtleParams>("params", 1, true); // latch == true
   teleport_absolute_xyz_srv_ = nh_.advertiseService("teleport_absolute_xyz",
       &Turtle::teleportAbsoluteXYZCallback, this);
+  set_params_srv_ = nh_.advertiseService("set_params",
+      &Turtle::setParamsCallback, this);
+
+  params_pub_.publish(params_);
 };
 
 
@@ -59,7 +65,18 @@ void Turtle::velocityXYZCallback(
 bool Turtle::teleportAbsoluteXYZCallback(
     sightedturtlesim::TeleportAbsoluteXYZ::Request& req,
     sightedturtlesim::TeleportAbsoluteXYZ::Response&) {
-  setPose(req.x, req.y, req.z, req.theta, true);
+  setPose(req.x, req.y, req.z, req.theta, true); // resetSpeed == true
+  return true;
+};
+
+
+bool Turtle::setParamsCallback(
+    sightedturtlesim::SetTurtleParams::Request& req,
+    sightedturtlesim::SetTurtleParams::Response&) {
+  poseMutex.lock();
+  params_ = req.new_params;
+  poseMutex.unlock();
+  params_pub_.publish(params_);
   return true;
 };
 
@@ -74,9 +91,9 @@ void Turtle::update(double dt, double canvasWidth, double canvasHeight) {
   }
 
   pos_.theta = fmod(pos_.theta + pos_.angular_velocity * dt, 2*M_PI);
-  pos_.x += scale * sin(pos_.theta + M_PI/2.0) * pos_.linear_velocity * dt;
-  pos_.y += scale * cos(pos_.theta + M_PI/2.0) * pos_.linear_velocity * dt;
-  double z_new = pos_.z + scale * pos_.linear_velocity_z * dt;
+  pos_.x += params_.spatial_scale * sin(pos_.theta + M_PI/2.0) * pos_.linear_velocity * dt;
+  pos_.y += params_.spatial_scale * cos(pos_.theta + M_PI/2.0) * pos_.linear_velocity * dt;
+  double z_new = pos_.z + params_.spatial_scale * pos_.linear_velocity_z * dt;
   if (z_new > 0) { pos_.z = z_new; } // Only update z if new value is above zero
 
   // Cycle-clamp position

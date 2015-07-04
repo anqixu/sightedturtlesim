@@ -24,8 +24,6 @@
 #include <boost/algorithm/string.hpp>
 
 
-// TODO: 9 add nodelet version of sightedturtlesim, with launch files
-
 int QTurtleGUI::sigintFd[2];
 
 

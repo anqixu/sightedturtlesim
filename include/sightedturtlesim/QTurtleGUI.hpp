@@ -52,6 +52,7 @@ public slots:
   void handleSigint();
 
   bool loadSingleImageMap(QString filename, double ppm);
+  // TODO: 000 ideally, GUI should be able to spawn turtle with new drive mode (but make sure to allow for backwards compat)
   std::string spawnTurtle(double x, double y, double z, double angle,
       unsigned int imWidth, unsigned int imHeight, double imFPS, double scale);
   bool killTurtle(const std::string& name);
