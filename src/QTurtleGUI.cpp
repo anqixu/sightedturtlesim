@@ -178,7 +178,7 @@ void QTurtleGUI::open() {
     bool ok = false;
     double ppm = QInputDialog::getDouble(this, tr("Specify Image Scale"),
         tr("Please specify image scale, in pixels per meters: "),
-        1.0, 0.0, std::numeric_limits<double>::max(), 4, &ok);
+        1.0, 0.0, 10000.0, 4, &ok);
     if (!ok || ppm <= 0.0) {
       return;
     }
