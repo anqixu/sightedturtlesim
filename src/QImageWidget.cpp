@@ -31,23 +31,32 @@ QImageWidget::QImageWidget(QWidget* parent) :
   for (int i = 0; i <= 255; i++) { greyscaleIndex[i] = qRgb(i, i, i); }
 
   // Load robot icons
-  std::string turtles[5] = {
+#define MAX_NUM_TURTLES 9
+  std::string turtles[MAX_NUM_TURTLES] = {
     "box-turtle.png",
     "robot-turtle.png",
     "sea-turtle.png",
     "diamondback.png",
-    "turtle.png"
-  };
-  Qt::GlobalColor colors[5] = {
+    "electric.png",
+    "fuerte.png",
+    "groovy.png",
+    "indigo.png",
+    "jade.png"
+  }; // skip hydro.png since image is much larger
+  Qt::GlobalColor colors[MAX_NUM_TURTLES] = {
       Qt::green,
-      Qt::cyan,
       Qt::blue,
+      Qt::red,
+      Qt::cyan,
       Qt::magenta,
-      Qt::gray
+      Qt::yellow,
+      Qt::darkGreen,
+      Qt::darkBlue,
+      Qt::darkRed,
   };
 
   std::string images_path = ros::package::getPath("turtlesim") + "/images/";
-  for (size_t i = 0; i < 5; i++) {
+  for (size_t i = 0; i < MAX_NUM_TURTLES; i++) {
     QImage robotImage = QImage(QString::fromStdString(images_path + turtles[i]));
     if (!robotImage.isNull()) {
       robot_images_.push_back(std::make_pair(robotImage, colors[i]));

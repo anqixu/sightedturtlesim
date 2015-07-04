@@ -82,6 +82,7 @@ public:
 
 protected:
   void velocityXYZCallback(const sightedturtlesim::VelocityXYZ::ConstPtr& msg);
+  void driveXYZCallback(const sightedturtlesim::DriveXYZ::ConstPtr& msg);
   bool teleportAbsoluteXYZCallback(
       sightedturtlesim::TeleportAbsoluteXYZ::Request&,
       sightedturtlesim::TeleportAbsoluteXYZ::Response&);
@@ -97,6 +98,7 @@ protected:
   bool alive;
 
   ros::Subscriber velocity_xyz_sub_;
+  ros::Subscriber drive_xyz_sub_;
   ros::Publisher pose_xyz_pub_;
   ros::Publisher params_pub_;
   ros::ServiceServer teleport_absolute_xyz_srv_;

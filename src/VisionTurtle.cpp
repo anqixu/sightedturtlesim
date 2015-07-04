@@ -8,8 +8,9 @@
 using namespace std;
 
 
-bool eq(const sightedturtlesim::PoseXYZ& a, const sightedturtlesim::PoseXYZ& b) {
-  return (a.x == b.x && a.y == b.y && a.z == b.z && a.theta == b.theta && a.linear_velocity == b.linear_velocity && a.angular_velocity == b.angular_velocity && a.linear_velocity_z == b.linear_velocity_z);
+// NOTE: since this fn is used for fetching images, only care about state, and not velocity/acceleration/controls
+inline bool isSamePose(const sightedturtlesim::PoseXYZ& a, const sightedturtlesim::PoseXYZ& b) {
+  return (a.x == b.x && a.y == b.y && a.z == b.z && a.theta == b.theta);
 };
 
 
@@ -82,15 +83,8 @@ void VisionTurtle::imagePoller() {
         poseMutex.lock();
 
         // Check if current pose is same as previously published pose (which must have a populated image)
-        bool samePose = (
-            (imageWithPoseMsg.pose.x == pos_.x) &&
-            (imageWithPoseMsg.pose.y == pos_.y) &&
-            (imageWithPoseMsg.pose.theta == pos_.theta) &&
-            (imageWithPoseMsg.pose.linear_velocity == pos_.linear_velocity) &&
-            (imageWithPoseMsg.pose.angular_velocity == pos_.angular_velocity) &&
-            (imageWithPoseMsg.pose.z == pos_.z) &&
-            (imageWithPoseMsg.pose.linear_velocity_z == pos_.linear_velocity_z) &&
-            (imageWithPoseMsg.img.step * imageWithPoseMsg.img.width > 0));
+        bool samePose = isSamePose(imageWithPoseMsg.pose, pos_) &&
+            (imageWithPoseMsg.img.step * imageWithPoseMsg.img.width > 0);
         if (firstPoll) {
           samePose = false;
           firstPoll = false;
@@ -155,9 +149,7 @@ bool VisionTurtle::queryGeolocatedImageCallback(
 
   poseMutex.lock();
 
-  bool same = eq(imageWithPoseMsg.pose, req.pose);
-
-  if (same) {
+  if (isSamePose(imageWithPoseMsg.pose, req.pose)) {
     res.img = imageWithPoseMsg.img; // NOTE: confirmed to perform deep copy
   } else {
     imageServer->getImage(req.pose.x * imageServer->pixelsPerMeter(),

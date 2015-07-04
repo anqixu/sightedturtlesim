@@ -1,6 +1,6 @@
 <package>
   <name>sightedturtlesim</name>
-  <version>1.0.0</version>
+  <version>2.0.0</version>
   <description>
     Holonomic robot simulator for agents with 2D XY + height motion capabilities and with downward-facing cameras
   </description>

@@ -1,4 +1,4 @@
-float64 spatial_scale
+float64 spatial_scale # if <=0, use default scale==1
 
 int8 ctrl_mode # if false then controlled via VelocityXYZ
 int8 VELOCITY_CTRL_MODE = 0
