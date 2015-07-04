@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009, Willow Garage, Inc.
+ * Copyright (c) 2012-2015, Anqi Xu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +33,12 @@
 #define TURTLEFRAME_HPP_
 
 
+#include <map>
+#include <boost/thread/mutex.hpp>
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
-#include <turtlesim/Spawn.h>
-#include <turtlesim/Kill.h>
-#include <map>
 #include "sightedturtlesim/Turtle.hpp"
 #include "sightedturtlesim/VisionTurtle.hpp"
-#include <boost/thread/mutex.hpp>
 
 
 class AbstractImageServer;
@@ -53,9 +52,8 @@ public:
 
   void updateImageServer(AbstractImageServer* newServer) { imageServer = newServer; };
 
-  std::string spawnTurtle(const std::string& name, double x, double y, double angle);
   std::string spawnVisionTurtle(
-      double x = 0.0, double y = 0.0, double z = 100.0, double angle = 0.0,
+      double x = 0.0, double y = 0.0, double z = 100.0, double theta = 0.0,
       unsigned int camW = VisionTurtle::DEFAULT_IMAGE_WIDTH,
       unsigned int camH = VisionTurtle::DEFAULT_IMAGE_HEIGHT,
       double fps = VisionTurtle::DEFAULT_FPS,
@@ -70,22 +68,15 @@ public:
   void reset();
 
 protected:
-  void clear();
   bool hasTurtle(const std::string& name);
 
-  bool clearCallback(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
   bool resetCallback(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
-  bool spawnCallback(turtlesim::Spawn::Request&, turtlesim::Spawn::Response&);
-  bool killCallback(turtlesim::Kill::Request&, turtlesim::Kill::Response&);
 
   ros::NodeHandle nh_;
 
   ros::WallTime last_turtle_update_;
 
-  ros::ServiceServer clear_srv_;
   ros::ServiceServer reset_srv_;
-  ros::ServiceServer spawn_srv_;
-  ros::ServiceServer kill_srv_;
 
   M_Turtle turtles_;
   unsigned int freeRobotID;

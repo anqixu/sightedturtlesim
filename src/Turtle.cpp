@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009, Willow Garage, Inc.
+ * Copyright (c) 2012-2015, Anqi Xu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +31,8 @@
 #include "sightedturtlesim/Turtle.hpp"
 
 
-Turtle::Turtle(const ros::NodeHandle& nh, const Vector2& robotPos,
-    double orientRad, double z, double s) :
-    nh_(nh), pos_(robotPos), orient_(orientRad), z_(z),
-    lin_vel_(0), ang_vel_(0), z_vel_(0), scale(s), alive(true) {
+Turtle::Turtle(const ros::NodeHandle& nh, const sightedturtlesim::PoseXYZ& initPose, double s) :
+    nh_(nh), pos_(initPose), scale(s), alive(true) {
   velocity_xyz_sub_ = nh_.subscribe("command_velocity_xyz", 1, &Turtle::velocityXYZCallback, this);
   pose_xyz_pub_ = nh_.advertise<sightedturtlesim::PoseXYZ>("pose_xyz", 1);
   teleport_absolute_xyz_srv_ = nh_.advertiseService("teleport_absolute_xyz",
@@ -47,12 +46,12 @@ Turtle::~Turtle() {
 
 
 void Turtle::velocityXYZCallback(
-    const sightedturtlesim::VelocityXYZConstPtr& msg) {
+    const sightedturtlesim::VelocityXYZ::ConstPtr& msg) {
   poseMutex.lock();
   last_command_time_ = ros::WallTime::now();
-  lin_vel_ = msg->linear_xy;
-  ang_vel_ = msg->angular_xy;
-  z_vel_ = msg->linear_z;
+  pos_.linear_velocity = msg->linear_xy;
+  pos_.angular_velocity = msg->angular_xy;
+  pos_.linear_velocity_z = msg->linear_z;
   poseMutex.unlock();
 };
 
@@ -60,10 +59,7 @@ void Turtle::velocityXYZCallback(
 bool Turtle::teleportAbsoluteXYZCallback(
     sightedturtlesim::TeleportAbsoluteXYZ::Request& req,
     sightedturtlesim::TeleportAbsoluteXYZ::Response&) {
-  teleport_requests_.push_back(TeleportRequest(req.x, req.y, req.theta, 0, false));
-  poseMutex.lock();
-  z_ = req.z;
-  poseMutex.unlock();
+  setPose(req.x, req.y, req.z, req.theta, true);
   return true;
 };
 
@@ -71,42 +67,17 @@ bool Turtle::teleportAbsoluteXYZCallback(
 void Turtle::update(double dt, double canvasWidth, double canvasHeight) {
   poseMutex.lock();
 
-  // Upon any teleportation request, robot's velocity is set to zero
-  if (!teleport_requests_.empty()) {
-    lin_vel_ = 0.0;
-    ang_vel_ = 0.0;
-    z_vel_ = 0.0;
-  }
-
-  // process all queued teleportation requests, in order
-  std::vector<TeleportRequest>::iterator it = teleport_requests_.begin();
-  std::vector<TeleportRequest>::iterator end = teleport_requests_.end();
-  for (; it != end; it++) {
-    const TeleportRequest& req = *it;
-
-    if (req.relative) {
-      orient_ += req.theta;
-      pos_.x += scale * sin(orient_ + M_PI/2.0) * req.linear;
-      pos_.y += scale * cos(orient_ + M_PI/2.0) * req.linear;
-    } else {
-      pos_.x = req.pos.x;
-      pos_.y = req.pos.y;
-      orient_ = req.theta;
-    }
-  }
-  teleport_requests_.clear();
-
   if (ros::WallTime::now() - last_command_time_ > ros::WallDuration(COMMAND_TIMEOUT_SECS)) {
-    lin_vel_ = 0.0;
-    ang_vel_ = 0.0;
-    z_vel_ = 0.0;
+    pos_.linear_velocity = 0.0;
+    pos_.angular_velocity = 0.0;
+    pos_.linear_velocity_z = 0.0;
   }
 
-  orient_ = fmod(orient_ + ang_vel_ * dt, 2*M_PI);
-  pos_.x += scale * sin(orient_ + M_PI/2.0) * lin_vel_ * dt;
-  pos_.y += scale * cos(orient_ + M_PI/2.0) * lin_vel_ * dt;
-  double z_new = z_ + scale * z_vel_ * dt;
-  if (z_new > 0) { z_ = z_new; } // Only update z if new value is above zero
+  pos_.theta = fmod(pos_.theta + pos_.angular_velocity * dt, 2*M_PI);
+  pos_.x += scale * sin(pos_.theta + M_PI/2.0) * pos_.linear_velocity * dt;
+  pos_.y += scale * cos(pos_.theta + M_PI/2.0) * pos_.linear_velocity * dt;
+  double z_new = pos_.z + scale * pos_.linear_velocity_z * dt;
+  if (z_new > 0) { pos_.z = z_new; } // Only update z if new value is above zero
 
   // Cycle-clamp position
   pos_.x = pos_.x - floor(pos_.x/canvasWidth)*canvasWidth;
@@ -114,18 +85,10 @@ void Turtle::update(double dt, double canvasWidth, double canvasHeight) {
   pos_.y = pos_.y - floor(pos_.y/canvasHeight)*canvasHeight;
   if (pos_.y < 0) { pos_.y += canvasHeight; }
 
-  sightedturtlesim::PoseXYZ p;
-  p.header.stamp = ros::Time::now();
-  p.x = pos_.x;
-  p.y = pos_.y;
-  p.theta = orient_;
-  p.linear_velocity = lin_vel_;
-  p.angular_velocity = ang_vel_;
-  p.z = z_;
-  p.linear_velocity_z = z_vel_;
+  sightedturtlesim::PoseXYZ p = pos_; p.header.stamp = ros::Time::now();
 
   //ROS_DEBUG_STREAM("[" << nh_.getNamespace() << "]: pos_x: " << pos_.x <<
-  //    " pos_y: " << pos_.y << " theta: " << orient_ << " pos_z: " << z_);
+  //    " pos_y: " << pos_.y << " theta: " << pos_.theta << " pos_z: " << pos_.z);
 
   poseMutex.unlock();
 

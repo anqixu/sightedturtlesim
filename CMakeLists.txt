@@ -125,6 +125,10 @@ include_directories(
 #  )
 
 
+# Build teleop_sighted_turtle_key
+add_executable(teleop_sighted_turtle_key src/teleop_sighted_turtle_key.cpp)
+target_link_libraries(teleop_sighted_turtle_key ${catkin_LIBRARIES})
+add_dependencies(teleop_sighted_turtle_key ${PROJECT_NAME}_generate_messages_cpp)
 
 # Build internal tester project
 add_executable(tester ${TESTER_SOURCES})

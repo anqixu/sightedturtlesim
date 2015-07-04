@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009, Willow Garage, Inc.
+ * Copyright (c) 2012-2015, Anqi Xu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,68 +41,51 @@
 #include <sightedturtlesim/TeleportAbsoluteXYZ.h>
 
 
-struct Vector2 {
-  Vector2() : x(0.0), y(0.0) {};
-  Vector2(double _x, double _y) : x(_x), y(_y) {};
-  bool operator==(const Vector2& rhs) { return x == rhs.x && y == rhs.y; };
-  bool operator!=(const Vector2& rhs) { return x != rhs.x || y != rhs.y; };
-  double x, y;
-};
-
-
-struct TeleportRequest {
-  TeleportRequest(double x, double y, double _theta, double _linear,
-      bool _relative) : pos(x, y), theta(_theta), linear(_linear),
-      relative(_relative) {};
-  Vector2 pos;
-  double theta;
-  double linear;
-  bool relative;
-};
-
-
 class Turtle {
 public:
-  Turtle(const ros::NodeHandle& nh, const Vector2& pos, double orientRad,
-      double z = 250.0, double s = 1.0);
+  Turtle(const ros::NodeHandle& nh, const sightedturtlesim::PoseXYZ& initPose, double s = 1.0);
   virtual ~Turtle();
   virtual void update(double dt, double canvasWidth, double canvasHeight);
 
-  void setPose(double x, double y, double z, double angleRad) {
+  void setPose(const sightedturtlesim::PoseXYZ& newPose) {
+    poseMutex.lock();
+    pos_ = newPose;
+    poseMutex.unlock();
+  };
+  void setPose(double x, double y, double z, double theta, bool resetVel = false) {
     poseMutex.lock();
     pos_.x = x;
     pos_.y = y;
-    z_ = z;
-    orient_ = angleRad;
-    teleport_requests_.clear();
+    pos_.z = z;
+    pos_.theta = theta;
+    if (resetVel) {
+      pos_.linear_velocity = 0;
+      pos_.linear_velocity_z = 0;
+      pos_.angular_velocity = 0;
+    }
     poseMutex.unlock();
   };
 
   double x() { return pos_.x; };
   double y() { return pos_.y; };
-  double z() { return z_; };
+  double z() { return pos_.z; };
 
-  double angleRad() { return orient_; };
-  double angleDeg() { return orient_/M_PI*180.0; };
+  double angleRad() { return pos_.theta; };
+  double angleDeg() { return pos_.theta/M_PI*180.0; };
 
   virtual int type() { return 0; };
 
   double getScale() { return scale; };
 
 protected:
-  void velocityXYZCallback(const sightedturtlesim::VelocityXYZConstPtr& msg);
+  void velocityXYZCallback(const sightedturtlesim::VelocityXYZ::ConstPtr& msg);
   bool teleportAbsoluteXYZCallback(
       sightedturtlesim::TeleportAbsoluteXYZ::Request&,
       sightedturtlesim::TeleportAbsoluteXYZ::Response&);
 
   ros::NodeHandle nh_;
 
-  Vector2 pos_;
-  double orient_;
-  double z_;
-  double lin_vel_;
-  double ang_vel_;
-  double z_vel_;
+  sightedturtlesim::PoseXYZ pos_;
   double scale;
 
   bool alive;
@@ -115,8 +99,6 @@ protected:
   std::mutex poseMutex;
 
   constexpr static double COMMAND_TIMEOUT_SECS = 1.0;
-
-  std::vector<TeleportRequest> teleport_requests_;
 };
 
 

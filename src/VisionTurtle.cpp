@@ -14,9 +14,10 @@ bool eq(const sightedturtlesim::PoseXYZ& a, const sightedturtlesim::PoseXYZ& b) 
 
 
 VisionTurtle::VisionTurtle(const ros::NodeHandle& nh,
-    const Vector2& pos, double orientRad, AbstractImageServer* server,
-    unsigned int id, unsigned int imWidth, unsigned int imHeight,
-    double fps, double z, double s) : Turtle(nh, pos, orientRad, z, s),
+    const sightedturtlesim::PoseXYZ& initPose,
+    AbstractImageServer* server, unsigned int id,
+    unsigned int imWidth, unsigned int imHeight,
+    double fps, double scale) : Turtle(nh, initPose, scale),
         imageTransport(nh_), imageRate(fps),
         imageServer(server), imageThread(),
         ID(id), imageSeqCount(0),
@@ -83,11 +84,11 @@ void VisionTurtle::imagePoller() {
         bool samePose = (
             (imageWithPoseMsg.pose.x == pos_.x) &&
             (imageWithPoseMsg.pose.y == pos_.y) &&
-            (imageWithPoseMsg.pose.theta == orient_) &&
-            (imageWithPoseMsg.pose.linear_velocity == lin_vel_) &&
-            (imageWithPoseMsg.pose.angular_velocity == ang_vel_) &&
-            (imageWithPoseMsg.pose.z == z_) &&
-            (imageWithPoseMsg.pose.linear_velocity_z == z_vel_) &&
+            (imageWithPoseMsg.pose.theta == pos_.theta) &&
+            (imageWithPoseMsg.pose.linear_velocity == pos_.linear_velocity) &&
+            (imageWithPoseMsg.pose.angular_velocity == pos_.angular_velocity) &&
+            (imageWithPoseMsg.pose.z == pos_.z) &&
+            (imageWithPoseMsg.pose.linear_velocity_z == pos_.linear_velocity_z) &&
             (imageWithPoseMsg.img.step * imageWithPoseMsg.img.width > 0));
         if (firstPoll) {
           samePose = false;
@@ -96,13 +97,7 @@ void VisionTurtle::imagePoller() {
 
         // Fetch new image if cache not found
         if (!samePose) {
-          imageWithPoseMsg.pose.x = pos_.x;
-          imageWithPoseMsg.pose.y = pos_.y;
-          imageWithPoseMsg.pose.theta = orient_;
-          imageWithPoseMsg.pose.linear_velocity = lin_vel_;
-          imageWithPoseMsg.pose.angular_velocity = ang_vel_;
-          imageWithPoseMsg.pose.z = z_;
-          imageWithPoseMsg.pose.linear_velocity_z = z_vel_;
+          imageWithPoseMsg.pose = pos_;
 
           imageServer->getImage(imageWithPoseMsg.pose.x * imageServer->pixelsPerMeter(),
               imageWithPoseMsg.pose.y * imageServer->pixelsPerMeter(),

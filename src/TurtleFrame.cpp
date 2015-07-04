@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009, Willow Garage, Inc.
+ * Copyright (c) 2012-2015, Anqi Xu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,52 +38,12 @@
 TurtleFrame::TurtleFrame(ros::NodeHandle& nh,
     AbstractImageServer* server) : nh_(nh),
     freeRobotID(1), imageServer(server), turtlesMutex() {
-  //clear_srv_ = nh_.advertiseService("clear", &TurtleFrame::clearCallback, this);
   reset_srv_ = nh_.advertiseService("reset", &TurtleFrame::resetCallback, this);
-  //spawn_srv_ = nh_.advertiseService("spawn", &TurtleFrame::spawnCallback, this);
-  //kill_srv_ = nh_.advertiseService("kill", &TurtleFrame::killCallback, this);
-
-  //ROS_INFO_STREAM("Starting turtlesim frame with node name " << ros::this_node::getName()) ;
-
-  //spawnVisionTurtle();
 };
 
 
 TurtleFrame::~TurtleFrame() {
   reset();
-};
-
-
-bool TurtleFrame::spawnCallback(turtlesim::Spawn::Request& req,
-    turtlesim::Spawn::Response& res) {
-  std::string name = spawnTurtle(req.name, req.x, req.y, req.theta);
-  if (name.empty()) {
-    ROS_ERROR_STREAM("A turtled named [" << req.name << "] already exists");
-    return false;
-  }
-  res.name = name;
-  return true;
-};
-
-
-bool TurtleFrame::killCallback(turtlesim::Kill::Request& req,
-    turtlesim::Kill::Response&) {
-  bool result = false;
-
-  turtlesMutex.lock();
-
-  M_Turtle::iterator it = turtles_.find(req.name);
-  if (it == turtles_.end()) {
-    ROS_ERROR_STREAM("Tried to kill turtle [" << req.name << "], which does not exist");
-  } else {
-    delete it->second;
-    turtles_.erase(it);
-    result = true;
-  }
-
-  turtlesMutex.unlock();
-
-  return result;
 };
 
 
@@ -116,58 +77,26 @@ bool TurtleFrame::hasTurtle(const std::string& name) {
 };
 
 
-std::string TurtleFrame::spawnTurtle(const std::string& name,
-    double x, double y, double angle) {
-  Turtle* t;
-  std::string real_name = name;
-  if (real_name.empty()) {
-    do {
-      std::stringstream ss;
-      ss << "turtle" << freeRobotID++;
-      real_name = ss.str();
-    } while (hasTurtle(real_name));
-    t = new VisionTurtle(ros::NodeHandle(real_name), Vector2(x, y), angle,
-        imageServer, freeRobotID - 1);
-  } else {
-    if (hasTurtle(real_name)) {
-      return "";
-    }
-    t = new Turtle(ros::NodeHandle(real_name), Vector2(x, y), angle);
-  }
-
-  turtlesMutex.lock();
-  turtles_[real_name] = t;
-  turtlesMutex.unlock();
-
-  ROS_INFO_STREAM("Spawning turtle [" << real_name << "] at x=[" << x <<
-      "], y=[" << y << "], theta=[" << angle << "]");
-
-  return real_name;
-};
-
-
 std::string TurtleFrame::spawnVisionTurtle(double x, double y, double z,
-    double angle, unsigned int camW, unsigned int camH, double fps, double scale) {
+    double theta, unsigned int camW, unsigned int camH, double fps, double scale) {
   std::string real_name;
   do {
     real_name = "turtle" + boost::lexical_cast<std::string>(freeRobotID++);
   } while (hasTurtle(real_name));
 
-  Turtle* t = new VisionTurtle(ros::NodeHandle(real_name), Vector2(x, y),
-      angle, imageServer, freeRobotID - 1, camW, camH, fps, z, scale);
+  sightedturtlesim::PoseXYZ initPose;
+  initPose.x = x; initPose.y = y; initPose.z = z; initPose.theta = theta;
+  Turtle* t = new VisionTurtle(ros::NodeHandle(real_name), initPose,
+      imageServer, freeRobotID - 1, camW, camH, fps, scale);
 
   turtlesMutex.lock();
   turtles_[real_name] = t;
   turtlesMutex.unlock();
 
   ROS_INFO_STREAM("Spawning turtle [" << real_name << "] at x=[" << x <<
-      "], y=[" << y << "], theta=[" << angle << "]");
+      "], y=[" << y << "], z=[" << z << "], theta=[" << theta << "]");
 
   return real_name;
-};
-
-
-void TurtleFrame::clear() {
 };
 
 
@@ -181,7 +110,6 @@ void TurtleFrame::reset() {
   turtles_.clear();
   turtlesMutex.unlock();
   freeRobotID = 1;
-  clear();
 };
 
 
@@ -205,14 +133,6 @@ void TurtleFrame::updateTurtles() {
         imageServer->height() / imageServer->pixelsPerMeter());
   }
   turtlesMutex.unlock();
-};
-
-
-bool TurtleFrame::clearCallback(std_srvs::Empty::Request&,
-    std_srvs::Empty::Response&) {
-  ROS_INFO("Clearing turtlesim.");
-  clear();
-  return true;
 };
 
 
