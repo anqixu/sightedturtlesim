@@ -22,7 +22,7 @@ def query_altitude(lat, lon):
 # TODO: parse top-left lat, lon
 topleft_latlon = (45.518436303950104, -73.62297892570496)
 
-class NRCANQueryNode:
+class NRCANAltitudeQueryNode:
   def __init__(self):
     self.pose_sub = rospy.Subscriber('/turtle1/image_xyz', ImageWithPoseXYZ, self.imageWithPoseCB)
   
@@ -37,6 +37,6 @@ class NRCANQueryNode:
     
 
 if __name__ == '__main__':
-  rospy.init_node('nrcan_query_node')
-  node = NRCANQueryNode()
+  rospy.init_node('nrcan_altitude_query_node')
+  node = NRCANAltitudeQueryNode()
   node.spin()
