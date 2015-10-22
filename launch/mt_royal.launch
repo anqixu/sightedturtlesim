@@ -1,0 +1,17 @@
+<launch>
+  <node pkg="sightedturtlesim" type="sightedturtlesim" name="sightedturtlesim" output="screen">
+    <param name="spin_rate_hz" type="double" value="30"/>
+  
+    <param name="INIT_LoadSingleImageMap_path" type="string" value="$(env HOME)/Dropbox/MAPS/mt_royal.jpg"/>
+    <param name="INIT_LoadSingleImageMap_pixelPerMeter" type="double" value="3.353829578260891"/>
+
+    <param name="INIT_Spawn_x" type="double" value="0"/>
+    <param name="INIT_Spawn_y" type="double" value="0"/>
+    <param name="INIT_Spawn_z" type="double" value="200"/>
+    <param name="INIT_Spawn_theta" type="double" value="0"/>
+    <param name="INIT_Spawn_scale" type="double" value="1"/>
+    <param name="INIT_Spawn_imageWidth" type="int" value="320"/>
+    <param name="INIT_Spawn_imageHeight" type="int" value="240"/>
+    <param name="INIT_Spawn_imageFPS" type="double" value="1"/>
+  </node>
+</launch>
