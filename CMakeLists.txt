@@ -100,14 +100,13 @@ if(${BUILD_CORE_ONLY})
 else()
 # Load other libraries and dependencies
 find_package(OpenCV REQUIRED)
-if (${OpenCV_VERSION} VERSION_LESS "3.0.0") # OpenCV 3.0.0 split certain HighGUI features into ImgCodecs and VideoIO
+if (${OpenCV_VERSION} VERSION_LESS "3.0") # OpenCV3 split certain HighGUI features into ImgCodecs and VideoIO
   find_package(OpenCV 2.2 REQUIRED COMPONENTS core imgproc highgui)
   message(STATUS "sightedturtlesim: using OpenCV ${OpenCV_VERSION} with highgui")
 else ()
   find_package(OpenCV 3.0 REQUIRED COMPONENTS core imgproc highgui imgcodecs)
   message(STATUS "sightedturtlesim: using OpenCV ${OpenCV_VERSION} with highgui+imgcodecs")
 endif ()
-add_definitions("-D OpenCV_VERSION_MAJOR=${OpenCV_VERSION_MAJOR}")
 
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.46 REQUIRED COMPONENTS date_time system thread)
