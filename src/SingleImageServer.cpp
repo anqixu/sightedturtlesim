@@ -1,6 +1,10 @@
 #include "sightedturtlesim/SingleImageServer.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#if OpenCV_VERSION_MAJOR >= 3
+// NOTE: in OpenCV 3, imread() was moved from highgui from imgcodecs
+#include <opencv2/imgcodecs/imgcodecs.hpp>
+#endif
 #include <iostream>
 #ifdef DEBUG_SINGLE_IMAGE_SERVER
 #include <sstream>
