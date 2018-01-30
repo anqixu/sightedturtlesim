@@ -72,6 +72,7 @@ add_message_files(
   VelocityXYZ.msg
   DriveXYZ.msg
   TurtleParams.msg
+  MapSettings.msg
   )
 
 add_service_files(

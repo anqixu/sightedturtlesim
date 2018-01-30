@@ -8,6 +8,7 @@
 #include <vector>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
+#include <sightedturtlesim/MapSettings.h>
 #include <sightedturtlesim/LoadSingleImageMap.h>
 #include <sightedturtlesim/Spawn.h>
 #include <sightedturtlesim/Kill.h>
@@ -94,12 +95,14 @@ protected:
   double scaleFactor;
 
   ros::NodeHandle node;
-  ros::NodeHandle local_node;
+  ros::NodeHandle localNode;
+  ros::Publisher mapSettingsPub;
   ros::ServiceServer loadSingleImageMapSrv;
   ros::ServiceServer spawnSrv;
   ros::ServiceServer killSrv;
 
   AbstractImageServer* imageServer;
+  sightedturtlesim::MapSettings mapSettings;
   TurtleFrame* robots;
   boost::mutex robotsMutex;
 

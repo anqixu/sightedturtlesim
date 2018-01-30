@@ -28,17 +28,18 @@ int QTurtleGUI::sigintFd[2];
 
 
 QTurtleGUI::QTurtleGUI() : QMainWindow(),
-    node(), local_node("~"), imageServer(NULL), robots(NULL), robotsMutex(), spinRateHz(100) {
+    node(), localNode("~"), imageServer(NULL), robots(NULL), robotsMutex(), spinRateHz(100) {
   if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sigintFd)) {
     qFatal("Could not create SIGINT socketpair for Qt");
   }
   snSigint = new QSocketNotifier(sigintFd[1], QSocketNotifier::Read, this);
   connect(snSigint, SIGNAL(activated(int)), this, SLOT(handleSigint()));
 
-  loadSingleImageMapSrv = local_node.advertiseService("load_single_image_map",
+  mapSettingsPub = localNode.advertise<sightedturtlesim::MapSettings>("map_settings", 1, true);
+  loadSingleImageMapSrv = localNode.advertiseService("load_single_image_map",
       &QTurtleGUI::loadSingleImageMapCB, this);
-  spawnSrv = local_node.advertiseService("spawn", &QTurtleGUI::spawnCB, this);
-  killSrv = local_node.advertiseService("kill", &QTurtleGUI::killCB, this);
+  spawnSrv = localNode.advertiseService("spawn", &QTurtleGUI::spawnCB, this);
+  killSrv = localNode.advertiseService("kill", &QTurtleGUI::killCB, this);
 
   scrollArea = new QScrollArea(this);
   scrollArea->setBackgroundRole(QPalette::Dark);
@@ -61,13 +62,13 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(),
   resize(400, 300);
 
   // Start spin thread
-  local_node.param<double>("spin_rate_hz", spinRateHz, 100.0);
+  localNode.param<double>("spin_rate_hz", spinRateHz, 100.0);
   if (spinRateHz < 50.) { spinRateHz = 50; }
   spinThread = boost::thread(boost::bind(&QTurtleGUI::spin, this));
 
   // Load cached images
   std::string fnameList = "";
-  local_node.param<std::string>("cached_image_fnames", fnameList, fnameList);
+  localNode.param<std::string>("cached_image_fnames", fnameList, fnameList);
   if (!fnameList.empty()) {
     typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
     boost::char_separator<char> sep(";");
@@ -94,21 +95,21 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(),
   // Process parameters for fast initialization
   std::string INIT_LoadSingleImageMap_path;
   double INIT_LoadSingleImageMap_pixelPerMeter;
-  if (local_node.getParam("INIT_LoadSingleImageMap_path", INIT_LoadSingleImageMap_path) &&
-      local_node.getParam("INIT_LoadSingleImageMap_pixelPerMeter", INIT_LoadSingleImageMap_pixelPerMeter)) {
+  if (localNode.getParam("INIT_LoadSingleImageMap_path", INIT_LoadSingleImageMap_path) &&
+      localNode.getParam("INIT_LoadSingleImageMap_pixelPerMeter", INIT_LoadSingleImageMap_pixelPerMeter)) {
     loadSingleImageMap(QString::fromStdString(INIT_LoadSingleImageMap_path),
         INIT_LoadSingleImageMap_pixelPerMeter); // WARNING: do not emit signal since connection is blocking, so will cause deadlock
 
     double INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z, INIT_Spawn_theta, INIT_Spawn_scale, INIT_Spawn_imageFPS;
     int INIT_Spawn_imageWidth, INIT_Spawn_imageHeight;
-    if (local_node.getParam("INIT_Spawn_x", INIT_Spawn_x) &&
-        local_node.getParam("INIT_Spawn_y", INIT_Spawn_y) &&
-        local_node.getParam("INIT_Spawn_z", INIT_Spawn_z) &&
-        local_node.getParam("INIT_Spawn_theta", INIT_Spawn_theta) &&
-        local_node.getParam("INIT_Spawn_scale", INIT_Spawn_scale) &&
-        local_node.getParam("INIT_Spawn_imageWidth", INIT_Spawn_imageWidth) &&
-        local_node.getParam("INIT_Spawn_imageHeight", INIT_Spawn_imageHeight) &&
-        local_node.getParam("INIT_Spawn_imageFPS", INIT_Spawn_imageFPS)) {
+    if (localNode.getParam("INIT_Spawn_x", INIT_Spawn_x) &&
+        localNode.getParam("INIT_Spawn_y", INIT_Spawn_y) &&
+        localNode.getParam("INIT_Spawn_z", INIT_Spawn_z) &&
+        localNode.getParam("INIT_Spawn_theta", INIT_Spawn_theta) &&
+        localNode.getParam("INIT_Spawn_scale", INIT_Spawn_scale) &&
+        localNode.getParam("INIT_Spawn_imageWidth", INIT_Spawn_imageWidth) &&
+        localNode.getParam("INIT_Spawn_imageHeight", INIT_Spawn_imageHeight) &&
+        localNode.getParam("INIT_Spawn_imageFPS", INIT_Spawn_imageFPS)) {
       spawnTurtle(INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z,
           INIT_Spawn_theta, INIT_Spawn_imageWidth, INIT_Spawn_imageHeight,
           INIT_Spawn_imageFPS, INIT_Spawn_scale); // WARNING: do not emit signal since connection is blocking, so will cause deadlock
@@ -315,6 +316,14 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
   fitToWindow();
   autoRefreshAct->setChecked(true);
   autoRefresh();
+
+  mapSettings.filename = filenameString;
+  mapSettings.width_px = imageServer->width();
+  mapSettings.height_px = imageServer->height();
+  mapSettings.pixel_per_meter = imageServer->pixelsPerMeter();
+  mapSettings.width_m = mapSettings.width_px/mapSettings.pixel_per_meter;
+  mapSettings.height_m = mapSettings.height_px/mapSettings.pixel_per_meter;
+  mapSettingsPub.publish(mapSettings);
 
   ROS_INFO_STREAM("New map loaded: " << filenameString << " @ ppm=" << ppm);
 

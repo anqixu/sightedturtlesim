@@ -14,16 +14,16 @@ public:
   //              bottomRightX, bottomRightY, bottomLeftX, bottomLeftY]
   //
   // NOTE: if !buffer.empty(), then resulting image size = buffer.size()
-  virtual void getImage(double* cornersXY, cv::Mat& buffer) = 0;
+  virtual void getImage(double* cornersXY, cv::Mat& buffer, bool& isWrapped) = 0;
 
   // NOTE: if !buffer.empty(), then resulting image size = buffer.size()
   virtual void getImage(double x, double y, double upDeg,
-      cv::Mat& buffer, double camW = 0, double camH = 0) = 0;
+      cv::Mat& buffer, bool& isWrapped, double camW = 0, double camH = 0) = 0;
   void getImage(double x, double y, double upDeg,
-      double z, double hfovDeg, double aspectRatio, cv::Mat& buffer) {
+      double z, double hfovDeg, double aspectRatio, cv::Mat& buffer, bool& isWrapped) {
     double camW = z * atan(hfovDeg / 90.0 * M_PI);
     double camH = camW / aspectRatio;
-    getImage(x, y, upDeg, buffer, camW, camH);
+    getImage(x, y, upDeg, buffer, isWrapped, camW, camH);
   };
 
   double getMidX() { return _width / 2.0 / _pixelsPerMeter; };

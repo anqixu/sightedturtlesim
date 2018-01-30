@@ -94,11 +94,13 @@ void VisionTurtle::imagePoller() {
         if (!samePose) {
           imageWithPoseMsg.pose = pos_;
 
+          bool isWrapped;
           imageServer->getImage(imageWithPoseMsg.pose.x * imageServer->pixelsPerMeter(),
               imageWithPoseMsg.pose.y * imageServer->pixelsPerMeter(),
               -imageWithPoseMsg.pose.theta/M_PI*180.0 + 90.0,
               imageWithPoseMsg.pose.z * imageServer->pixelsPerMeter(),
-              hfovDeg, aspectRatio, image.image);
+              hfovDeg, aspectRatio, image.image, isWrapped);
+          imageWithPoseMsg.isWrapped = isWrapped;
           AbstractImageServer::toCornersXY(
               imageWithPoseMsg.pose.x * imageServer->pixelsPerMeter(),
               imageWithPoseMsg.pose.y * imageServer->pixelsPerMeter(),
@@ -151,11 +153,14 @@ bool VisionTurtle::queryGeolocatedImageCallback(
 
   if (isSamePose(imageWithPoseMsg.pose, req.pose)) {
     res.img = imageWithPoseMsg.img; // NOTE: confirmed to perform deep copy
+    res.isWrapped = imageWithPoseMsg.isWrapped;
   } else {
+    bool isWrapped;
     imageServer->getImage(req.pose.x * imageServer->pixelsPerMeter(),
         req.pose.y * imageServer->pixelsPerMeter(),
         -req.pose.theta/M_PI*180.0 + 90.0, req.pose.z * imageServer->pixelsPerMeter(),
-        hfovDeg, aspectRatio, image_req.image);
+        hfovDeg, aspectRatio, image_req.image, isWrapped);
+    res.isWrapped = isWrapped;
     image_req.toImageMsg(res.img);
 
     AbstractImageServer::toCornersXY(

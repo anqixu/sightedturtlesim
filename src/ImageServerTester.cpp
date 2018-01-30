@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
   unsigned int imHeight = 240;
 
   bool redraw = true;
+  bool isWrapped = false;
 
   while (1) {
     if (redraw) {
@@ -35,7 +36,7 @@ int main(int argc, char** argv) {
 
       boost::posix_time::ptime tic = boost::posix_time::microsec_clock::local_time();
 
-      server.getImage(x, y, upDeg, buffer);
+      server.getImage(x, y, upDeg, buffer, isWrapped);
 
       boost::posix_time::time_duration td = boost::posix_time::microsec_clock::local_time() - tic;
 
@@ -43,7 +44,7 @@ int main(int argc, char** argv) {
 
       std::ostringstream oss;
       oss << "Fetched " << buffer.cols << " x " << buffer.rows <<
-         " image @ (" << x << ", " << y <<") & " << upDeg <<
+         " image (isWrapped: " << isWrapped << ") @ (" << x << ", " << y <<") & " << upDeg <<
          "' from " << server.width() << " x " << server.height() <<
          " canvas in " << td.total_microseconds() / 1000.0 << " ms";
       displayOverlay("image", oss.str(), 10000);

@@ -40,14 +40,15 @@ SingleImageServer::~SingleImageServer() {
 };
 
 
-void SingleImageServer::getImage(double* cornersXY, cv::Mat& buffer) {
+void SingleImageServer::getImage(double* cornersXY, cv::Mat& buffer, bool& isWrapped) {
   std::cerr << "ERROR: SingleImageServer::getImage(double* cornersXY, cv::Mat& buffer) not implemented" << std::endl;
   // TODO: 9 implement getImage through pixel sampling
 };
 
 
 void SingleImageServer::getImage(double x, double y, double upDeg,
-    cv::Mat& buffer, double camW, double camH) {
+    cv::Mat& buffer, bool& isWrapped, double camW, double camH) {
+  isWrapped = false;
   if (buffer.empty() || buffer.rows <= 0 || buffer.cols <= 0) {
     return;
   }
@@ -103,9 +104,11 @@ void SingleImageServer::getImage(double x, double y, double upDeg,
         ", " << camTXMin << ":" << camTXMax << ")" << std::endl;
 #endif
 
+    isWrapped = false;
     bbImage = _canvas(Range(round(camTYMin), round(camTYMax) + 1),
         Range(round(camTXMin), round(camTXMax) + 1));
   } else {
+    isWrapped = true;
     bbImage.create(round(camTYMax - camTYMin + 1), round(camTXMax - camTXMin + 1), _canvas.type());
     double currCamTY, currCamTX, currCamTYMod, currCamTXMod, patchHeight, patchWidth;
     long long bbY, bbX;
