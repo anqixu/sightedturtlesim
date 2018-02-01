@@ -12,6 +12,6 @@
     <param name="INIT_Spawn_scale" type="double" value="1"/>
     <param name="INIT_Spawn_imageWidth" type="int" value="320"/>
     <param name="INIT_Spawn_imageHeight" type="int" value="240"/>
-    <param name="INIT_Spawn_imageFPS" type="double" value="1"/>
+    <param name="INIT_Spawn_imageFPS" type="double" value="15"/>
   </node>
 </launch>
