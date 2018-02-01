@@ -10,6 +10,7 @@
 #include <QDoubleValidator>
 #include <QPushButton>
 #include <limits>
+#include "VisionTurtle.hpp"
 
 
 class QSpawnRobotDialog : public QDialog {
@@ -23,11 +24,14 @@ public:
 
     uintValidator = new QIntValidator(1, std::numeric_limits<int>::max(), this);
     udoubleValidator = new QDoubleValidator(0.0, std::numeric_limits<double>::max(), 4, this);
+    nndoubleValidator = new QDoubleValidator(std::numeric_limits<double>::epsilon(), std::numeric_limits<double>::max(), 4, this);
+    hfovDegValidator = new QDoubleValidator(10.0, 170.0, 4, this);
     fpsValidator = new QDoubleValidator(0.01, maxFPS, 4, this);
     angleValidator = new QDoubleValidator(0.0, 360.0, 4, this);
 
     xyzLabel = new QLabel(tr("Position (x, y, z) (m): "), this);
     angleLabel = new QLabel(tr("Angle (deg): "), this);
+    hfovDegLabel = new QLabel(tr("Horiz. FOV (deg): "), this);
     widthLabel = new QLabel(tr("Image Width (px): "), this);
     heightLabel = new QLabel(tr("Image Height (px): "), this);
     fpsLabel = new QLabel(tr("Image FPS (Hz): "), this);
@@ -36,18 +40,20 @@ public:
     yText = new QLineEdit(QString::number(defaultY), this);
     zText = new QLineEdit(QString::number(defaultZ), this);
     angleText = new QLineEdit(QString::number(0.0), this);
-    widthText = new QLineEdit(QString::number(DEFAULT_IMAGE_WIDTH), this);
-    heightText = new QLineEdit(QString::number(DEFAULT_IMAGE_HEIGHT), this);
-    fpsText = new QLineEdit(QString::number(DEFAULT_IMAGE_FPS), this);
+    hfovDegText = new QLineEdit(QString::number(VisionTurtle::DEFAULT_HFOV_DEG), this);
+    widthText = new QLineEdit(QString::number(VisionTurtle::DEFAULT_IMAGE_WIDTH), this);
+    heightText = new QLineEdit(QString::number(VisionTurtle::DEFAULT_IMAGE_HEIGHT), this);
+    fpsText = new QLineEdit(QString::number(VisionTurtle::DEFAULT_FPS), this);
     scaleText = new QLineEdit(QString::number(1), this);
     xText->setValidator(udoubleValidator);
     yText->setValidator(udoubleValidator);
-    zText->setValidator(udoubleValidator);
+    zText->setValidator(nndoubleValidator);
     angleText->setValidator(angleValidator);
+    hfovDegText->setValidator(hfovDegValidator);
     widthText->setValidator(uintValidator);
     heightText->setValidator(uintValidator);
     fpsText->setValidator(fpsValidator);
-    scaleText->setValidator(udoubleValidator);
+    scaleText->setValidator(nndoubleValidator);
 
     cancelButton = new QPushButton("&Cancel", this);
     cancelButton->setDefault(false);
@@ -65,14 +71,16 @@ public:
     mainLayout->addWidget(angleText, 1, 1);
     mainLayout->addWidget(scaleLabel, 1, 2);
     mainLayout->addWidget(scaleText, 1, 3);
-    mainLayout->addWidget(widthLabel, 2, 0);
-    mainLayout->addWidget(widthText, 2, 1);
-    mainLayout->addWidget(heightLabel, 2, 2);
-    mainLayout->addWidget(heightText, 2, 3);
-    mainLayout->addWidget(fpsLabel, 3, 0);
-    mainLayout->addWidget(fpsText, 3, 1);
-    mainLayout->addWidget(cancelButton, 3, 2);
-    mainLayout->addWidget(okButton, 3, 3);
+    mainLayout->addWidget(hfovDegLabel, 2, 0);
+    mainLayout->addWidget(hfovDegText, 2, 1);
+    mainLayout->addWidget(fpsLabel, 2, 2);
+    mainLayout->addWidget(fpsText, 2, 3);
+    mainLayout->addWidget(widthLabel, 3, 0);
+    mainLayout->addWidget(widthText, 3, 1);
+    mainLayout->addWidget(heightLabel, 3, 2);
+    mainLayout->addWidget(heightText, 3, 3);
+    mainLayout->addWidget(cancelButton, 4, 2);
+    mainLayout->addWidget(okButton, 4, 3);
 
     connect(cancelButton, SIGNAL(released()), this, SLOT(reject()));
     connect(okButton, SIGNAL(released()), this, SLOT(accept()));
@@ -83,19 +91,25 @@ public:
   double getY() { return yText->text().toDouble(); };
   double getZ() { return zText->text().toDouble(); };
   double getAngle() { return angleText->text().toDouble(); };
+  double getHFOVDeg() { return hfovDegText->text().toDouble(); };
+  double getAspectRatio() {
+    unsigned int w = getWidth(), h = getHeight();
+    if (h <= 0) {
+      return 1.0;
+    } else {
+      return double(w)/h;
+    }
+  };
   unsigned int getWidth() { return widthText->text().toInt(); };
   unsigned int getHeight() { return heightText->text().toInt(); };
   double getFPS() { return fpsText->text().toDouble(); };
   double getScale() { return scaleText->text().toDouble(); };
 
-  constexpr static unsigned int DEFAULT_IMAGE_WIDTH = 320;
-  constexpr static unsigned int DEFAULT_IMAGE_HEIGHT = 240;
-  constexpr static double DEFAULT_IMAGE_FPS = 15.0;
-
 protected:
   QGridLayout* mainLayout;
   QLabel* xyzLabel;
   QLabel* angleLabel;
+  QLabel* hfovDegLabel;
   QLabel* widthLabel;
   QLabel* heightLabel;
   QLabel* fpsLabel;
@@ -104,6 +118,7 @@ protected:
   QLineEdit* yText;
   QLineEdit* zText;
   QLineEdit* angleText;
+  QLineEdit* hfovDegText;
   QLineEdit* widthText;
   QLineEdit* heightText;
   QLineEdit* fpsText;
@@ -113,6 +128,8 @@ protected:
   QValidator* uintValidator;
   QValidator* angleValidator;
   QValidator* udoubleValidator;
+  QValidator* nndoubleValidator;
+  QValidator* hfovDegValidator;
   QValidator* fpsValidator;
 };
 

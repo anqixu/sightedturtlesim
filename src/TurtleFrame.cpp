@@ -77,8 +77,9 @@ bool TurtleFrame::hasTurtle(const std::string& name) {
 };
 
 
-std::string TurtleFrame::spawnVisionTurtle(double x, double y, double z,
-    double theta, unsigned int camW, unsigned int camH, double fps, double scale) {
+std::string TurtleFrame::spawnVisionTurtle(double x, double y, double z, double theta,
+    double hfovDeg, double aspectRatio,
+    unsigned int camW, unsigned int camH, double fps, double scale) {
   std::string real_name;
   do {
     real_name = "turtle" + boost::lexical_cast<std::string>(freeRobotID++);
@@ -89,7 +90,7 @@ std::string TurtleFrame::spawnVisionTurtle(double x, double y, double z,
   sightedturtlesim::TurtleParams params;
   params.spatial_scale = scale; params.ctrl_mode = sightedturtlesim::TurtleParams::VELOCITY_CTRL_MODE;
   Turtle* t = new VisionTurtle(ros::NodeHandle(real_name), initPose, params,
-      imageServer, freeRobotID - 1, camW, camH, fps);
+      imageServer, freeRobotID - 1, hfovDeg, aspectRatio, camW, camH, fps);
 
   turtlesMutex.lock();
   turtles_[real_name] = t;

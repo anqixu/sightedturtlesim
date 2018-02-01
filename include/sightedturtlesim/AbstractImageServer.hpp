@@ -21,7 +21,7 @@ public:
       cv::Mat& buffer, bool& isWrapped, double camW = 0, double camH = 0) = 0;
   void getImage(double x, double y, double upDeg,
       double z, double hfovDeg, double aspectRatio, cv::Mat& buffer, bool& isWrapped) {
-    double camW = z * atan(hfovDeg / 90.0 * M_PI);
+    double camW = z*2 * tan(hfovDeg / 2.0 / 180.0 * M_PI);
     double camH = camW / aspectRatio;
     getImage(x, y, upDeg, buffer, isWrapped, camW, camH);
   };
@@ -37,9 +37,13 @@ public:
   void setCanvasSize(long long w, long long h) { _width = w; _height = h; };
 
   static void toCornersXY(double x, double y, double headingDeg,
-      double z, double hfovDeg, double aspectRatio, double* cornersXYBuffer);
-  static void toCornersXY(double x, double y, double headingDeg,
       double camW, double camH, double* cornersXYBuffer);
+  static void toCornersXY(double x, double y, double headingDeg,
+      double z, double hfovDeg, double aspectRatio, double* cornersXYBuffer) {
+    double camW = z*2 * tan(hfovDeg / 2.0 / 180.0 * M_PI);
+    double camH = camW / aspectRatio;
+    toCornersXY(x, y, headingDeg, camW, camH, cornersXYBuffer);
+  };
 
   // If the desired camera dimensions (with respect to the canvas dimensions)
   // exceeds DOWNSIZE_SCALE_RATIO times the dimensions of the desired image,

@@ -14,14 +14,6 @@ AbstractImageServer::~AbstractImageServer() {
 
 
 void AbstractImageServer::toCornersXY(double x, double y, double headingDeg,
-      double z, double hfovDeg, double aspectRatio, double* cornersXYBuffer) {
-  double camW = z * atan(hfovDeg / 90.0 * M_PI);
-  double camH = camW / aspectRatio;
-  toCornersXY(x, y, headingDeg, camW, camH, cornersXYBuffer);
-};
-
-
-void AbstractImageServer::toCornersXY(double x, double y, double headingDeg,
       double camW, double camH, double* cornersXYBuffer) {
   double thetaRad = -headingDeg/180.0*M_PI;
   cv::Mat camTransform(2, 2, CV_64FC1);

@@ -54,6 +54,8 @@ public:
 
   std::string spawnVisionTurtle(
       double x = 0.0, double y = 0.0, double z = 100.0, double theta = 0.0,
+      double hfovDeg = VisionTurtle::DEFAULT_HFOV_DEG,
+      double aspectRatio = VisionTurtle::DEFAULT_ASPECT_RATIO,
       unsigned int camW = VisionTurtle::DEFAULT_IMAGE_WIDTH,
       unsigned int camH = VisionTurtle::DEFAULT_IMAGE_HEIGHT,
       double fps = VisionTurtle::DEFAULT_FPS,

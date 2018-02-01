@@ -20,6 +20,8 @@ public:
       const sightedturtlesim::TurtleParams& params,
       AbstractImageServer* server,
       unsigned int id = 0,
+      double hfovDeg = DEFAULT_HFOV_DEG,
+      double aspectRatio = DEFAULT_ASPECT_RATIO,
       unsigned int imWidth = DEFAULT_IMAGE_WIDTH,
       unsigned int imHeight = DEFAULT_IMAGE_HEIGHT,
       double fps = DEFAULT_FPS);
@@ -32,6 +34,8 @@ public:
 
   virtual int type() { return ID; };
 
+  double getHFOVDeg() { return hfovDeg; };
+  double getAspectRatio() { return aspectRatio; };
   unsigned int getImWidth() { return image.image.cols; };
   unsigned int getImHeight() { return image.image.rows; };
   double getFPS() { return 1.0/imageRate.expectedCycleTime().toSec(); };
@@ -39,7 +43,7 @@ public:
   constexpr static unsigned int DEFAULT_IMAGE_WIDTH = 320;
   constexpr static unsigned int DEFAULT_IMAGE_HEIGHT = 240;
   constexpr static double DEFAULT_FPS = 15.0;
-  constexpr static double DEFAULT_HFOV_DEG = 46.0;
+  constexpr static double DEFAULT_HFOV_DEG = 100.0;
   constexpr static double DEFAULT_ASPECT_RATIO = 4.0/3;
 
 protected:
@@ -73,6 +77,8 @@ typedef struct _VisionTurtleState {
   double x;
   double y;
   double orientRad;
+  double hfovDeg;
+  double aspectRatio;
   int id;
   unsigned int imWidth;
   unsigned int imHeight;
@@ -80,11 +86,14 @@ typedef struct _VisionTurtleState {
   double z;
   double s;
 
-  _VisionTurtleState() : x(0), y(0), orientRad(0), id(0),
-      imWidth(0), imHeight(0), fps(0), z(0), s(0) {};
+  _VisionTurtleState() : x(0), y(0), orientRad(0),
+    hfovDeg(100), aspectRatio(4./3),
+    id(-1), imWidth(320), imHeight(240), fps(1), z(100), s(1) {};
 
   _VisionTurtleState(VisionTurtle* t) :
-    x(t->x()), y(t->y()), orientRad(t->angleRad()), id(t->getID()),
+    x(t->x()), y(t->y()), orientRad(t->angleRad()),
+    hfovDeg(t->getHFOVDeg()), aspectRatio(t->getAspectRatio()),
+    id(t->getID()),
     imWidth(t->getImWidth()), imHeight(t->getImHeight()),
     fps(t->getFPS()), z(t->z()), s(t->getScale()) {};
 } VisionTurtleState;

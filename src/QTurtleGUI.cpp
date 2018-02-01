@@ -52,9 +52,12 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(),
 
   qRegisterMetaType<std::string>("std::string");
   connect(this, SIGNAL(requestLoadSingleImageMap(QString, double)),
-      this, SLOT(loadSingleImageMap(QString, double)), Qt::BlockingQueuedConnection);
-  connect(this, SIGNAL(requestSpawnTurtle(double, double, double, double, unsigned int, unsigned int, double, double)),
-      this, SLOT(spawnTurtle(double, double, double, double, unsigned int, unsigned int, double, double)), Qt::BlockingQueuedConnection);
+    this, SLOT(loadSingleImageMap(QString, double)), Qt::BlockingQueuedConnection);
+  connect(this, SIGNAL(requestSpawnTurtle(double, double, double, double,
+      double, double, unsigned int, unsigned int, double, double)),
+    this, SLOT(spawnTurtle(double, double, double, double,
+      double, double, unsigned int, unsigned int, double, double)),
+    Qt::BlockingQueuedConnection);
   connect(this, SIGNAL(requestKillTurtle(const std::string&)),
       this, SLOT(killTurtle(const std::string&)), Qt::BlockingQueuedConnection);
 
@@ -100,18 +103,22 @@ QTurtleGUI::QTurtleGUI() : QMainWindow(),
     loadSingleImageMap(QString::fromStdString(INIT_LoadSingleImageMap_path),
         INIT_LoadSingleImageMap_pixelPerMeter); // WARNING: do not emit signal since connection is blocking, so will cause deadlock
 
-    double INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z, INIT_Spawn_theta, INIT_Spawn_scale, INIT_Spawn_imageFPS;
+    double INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z, INIT_Spawn_theta;
+    double INIT_Spawn_hfovDeg, INIT_Spawn_aspectRatio, INIT_Spawn_scale, INIT_Spawn_imageFPS;
     int INIT_Spawn_imageWidth, INIT_Spawn_imageHeight;
     if (localNode.getParam("INIT_Spawn_x", INIT_Spawn_x) &&
         localNode.getParam("INIT_Spawn_y", INIT_Spawn_y) &&
         localNode.getParam("INIT_Spawn_z", INIT_Spawn_z) &&
         localNode.getParam("INIT_Spawn_theta", INIT_Spawn_theta) &&
+        localNode.getParam("INIT_Spawn_hfovDeg", INIT_Spawn_hfovDeg) &&
+        localNode.getParam("INIT_Spawn_aspectRatio", INIT_Spawn_aspectRatio) &&
         localNode.getParam("INIT_Spawn_scale", INIT_Spawn_scale) &&
         localNode.getParam("INIT_Spawn_imageWidth", INIT_Spawn_imageWidth) &&
         localNode.getParam("INIT_Spawn_imageHeight", INIT_Spawn_imageHeight) &&
         localNode.getParam("INIT_Spawn_imageFPS", INIT_Spawn_imageFPS)) {
-      spawnTurtle(INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z,
-          INIT_Spawn_theta, INIT_Spawn_imageWidth, INIT_Spawn_imageHeight,
+      spawnTurtle(INIT_Spawn_x, INIT_Spawn_y, INIT_Spawn_z, INIT_Spawn_theta,
+          INIT_Spawn_hfovDeg, INIT_Spawn_aspectRatio,
+          INIT_Spawn_imageWidth, INIT_Spawn_imageHeight,
           INIT_Spawn_imageFPS, INIT_Spawn_scale); // WARNING: do not emit signal since connection is blocking, so will cause deadlock
     }
   }
@@ -260,7 +267,8 @@ bool QTurtleGUI::loadSingleImageMap(QString filename, double ppm) {
   imageWidget->fromCVImage(imageServer->canvas());
   imageWidget->setRobotPtr(&robots->getTurtles());
   for (VisionTurtleState& t: existingTurtles) {
-    spawnTurtle(t.x, t.y, t.z, t.orientRad, t.imWidth, t.imHeight, t.fps, t.s);
+    spawnTurtle(t.x, t.y, t.z, t.orientRad, t.hfovDeg, t.aspectRatio,
+      t.imWidth, t.imHeight, t.fps, t.s);
   }
 #else
   if (imageServer != NULL) {
@@ -340,6 +348,7 @@ void QTurtleGUI::spawn() {
   QSpawnRobotDialog dialog(this, imageServer->getMidX(), imageServer->getMidY());
   if (dialog.exec() == QDialog::Accepted) {
     spawnTurtle(dialog.getX(), dialog.getY(), dialog.getZ(), dialog.getAngle(),
+        dialog.getHFOVDeg(), dialog.getAspectRatio(),
         dialog.getWidth(), dialog.getHeight(), dialog.getFPS(), dialog.getScale());
   }
 };
@@ -347,13 +356,18 @@ void QTurtleGUI::spawn() {
 
 bool QTurtleGUI::spawnCB(sightedturtlesim::Spawn::Request& req,
     sightedturtlesim::Spawn::Response& res) {
-  emit requestSpawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI, req.imageWidth, req.imageHeight, req.imageFPS, req.scale);
-  //spawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI, req.imageWidth, req.imageHeight, req.imageFPS, req.scale); // WARNING: running Qt fns on spin thread can cause segfaults!
+  emit requestSpawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI,
+    req.hfovDeg, req.aspectRatio,
+    req.imageWidth, req.imageHeight, req.imageFPS, req.scale);
+  //spawnTurtle(req.x, req.y, req.z, req.theta * 180.0 / M_PI,
+  //  req.hfovDeg, req.aspectRatio,
+  //  req.imageWidth, req.imageHeight, req.imageFPS, req.scale); // WARNING: running Qt fns on spin thread can cause segfaults!
   return true;
 };
 
 
 std::string QTurtleGUI::spawnTurtle(double x, double y, double z, double angle,
+    double hfovDeg, double aspectRatio,
     unsigned int imWidth, unsigned int imHeight, double imFPS, double scale) {
   if (imageServer == NULL || robots == NULL) {
     statusBar()->showMessage(tr("Please load image server before spawning robots."));
@@ -367,7 +381,7 @@ std::string QTurtleGUI::spawnTurtle(double x, double y, double z, double angle,
   robotsMutex.lock();
 
   std::string robotName = robots->spawnVisionTurtle(x, y, z, angle,
-      imWidth, imHeight, imFPS, scale);
+      hfovDeg, aspectRatio, imWidth, imHeight, imFPS, scale);
   killAct->setEnabled(true);
   if (fpsCapped) {
     statusBar()->showMessage(tr("Robot %1 spawned (FPS capped @ %2 Hz).").arg(QString::fromStdString(robotName)).arg(imFPS));
@@ -381,7 +395,7 @@ std::string QTurtleGUI::spawnTurtle(double x, double y, double z, double angle,
 };
 
 
-void QTurtleGUI::kill() {
+void QTurtleGUI::kill() { // TODO: 9 kill some/last? turtle causes freeze, both in GUI and via srv (16.04 XPS15, Qt5)
   robotsMutex.lock();
 
   QStringList robotIDs;

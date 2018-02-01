@@ -243,7 +243,7 @@ void QImageWidget::paintEvent(QPaintEvent* event) {
         M_Turtle::iterator itRobots = robots_->begin();
         M_Turtle::iterator itRobotsEnd = robots_->end();
         for (; itRobots != itRobotsEnd; itRobots++) {
-          Turtle* robot = itRobots->second;
+          VisionTurtle* robot = (VisionTurtle*) itRobots->second;
           xPx = robot->x() * pixelsPerMeter * imageScale;
           yPx = robot->y() * pixelsPerMeter * imageScale;
           zPx = robot->z() * pixelsPerMeter * imageScale;
@@ -254,8 +254,8 @@ void QImageWidget::paintEvent(QPaintEvent* event) {
           painter.drawImage(round(xPx - robotImage.width()/2.0),
               round(yPx - robotImage.height()/2.0), robotImage);
           AbstractImageServer::toCornersXY(xPx, yPx,
-              -robot->angleDeg() + 90.0, zPx, VisionTurtle::DEFAULT_HFOV_DEG,
-              VisionTurtle::DEFAULT_ASPECT_RATIO, cornersBuffer);
+              -robot->angleDeg() + 90.0, zPx, robot->getHFOVDeg(),
+              robot->getAspectRatio(), cornersBuffer);
           painter.setPen(QPen(currImagePair.second,
               std::max(1, (int) (std::min(this->width(), this->height()) / 250.0)),
               Qt::DashLine));

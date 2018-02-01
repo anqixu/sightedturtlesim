@@ -2,9 +2,11 @@ float64 x # in meters
 float64 y # in meters
 float64 z # in meters
 float64 theta # x-y plane orientation, in radians
+float64 hfovDeg # camera's horizontal Field of View angle
+float64 aspectRatio # camera's width/height aspect ratio; in almost all cases this should be imageWidth/imageHeight, unless deliberately want to create images that violate camera's aspect ratio
 float64 scale # linear amplification on x/y/z axes
-uint32 imageWidth # in pixels
-uint32 imageHeight # in pixels
+uint32 imageWidth # output image's width, in pixels
+uint32 imageHeight # output image's height, in pixels
 float64 imageFPS # in Hz
 
 ---

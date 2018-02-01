@@ -54,12 +54,14 @@ public slots:
 
   bool loadSingleImageMap(QString filename, double ppm);
   std::string spawnTurtle(double x, double y, double z, double angle,
+      double hfovDeg, double aspectRatio,
       unsigned int imWidth, unsigned int imHeight, double imFPS, double scale);
   bool killTurtle(const std::string& name);
 
 signals:
   void requestLoadSingleImageMap(QString filename, double ppm);
   void requestSpawnTurtle(double x, double y, double z, double angle,
+    double hfovDeg, double aspectRatio,
     unsigned int imWidth, unsigned int imHeight, double imFPS, double scale);
   void requestKillTurtle(const std::string& name);
 

@@ -9,6 +9,8 @@
     <param name="INIT_Spawn_y" type="double" value="0"/>
     <param name="INIT_Spawn_z" type="double" value="200"/>
     <param name="INIT_Spawn_theta" type="double" value="0"/>
+    <param name="INIT_Spawn_hfovDeg" type="double" value="100.0"/>
+    <param name="INIT_Spawn_aspectRatio" type="double" value="1.333333333333333"/>
     <param name="INIT_Spawn_scale" type="double" value="1"/>
     <param name="INIT_Spawn_imageWidth" type="int" value="320"/>
     <param name="INIT_Spawn_imageHeight" type="int" value="240"/>

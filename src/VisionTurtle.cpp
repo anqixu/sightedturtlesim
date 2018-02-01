@@ -18,12 +18,13 @@ VisionTurtle::VisionTurtle(const ros::NodeHandle& nh,
     const sightedturtlesim::PoseXYZ& initPose,
     const sightedturtlesim::TurtleParams& params,
     AbstractImageServer* server, unsigned int id,
+    double hfovDeg, double aspectRatio,
     unsigned int imWidth, unsigned int imHeight,
     double fps) : Turtle(nh, initPose, params),
         imageTransport(nh_), imageRate(fps),
         imageServer(server), imageThread(),
         ID(id), imageSeqCount(0),
-        hfovDeg(DEFAULT_HFOV_DEG), aspectRatio(DEFAULT_ASPECT_RATIO) {
+        hfovDeg(hfovDeg), aspectRatio(aspectRatio) {
   // Connect to ROS hooks
   imagePub = imageTransport.advertise("image_raw", 1); // WARNING: this can take some time to start, e.g. ~1sec
   geolocatedImagePub = nh_.advertise<sightedturtlesim::ImageWithPoseXYZ>("image_xyz", 1);
