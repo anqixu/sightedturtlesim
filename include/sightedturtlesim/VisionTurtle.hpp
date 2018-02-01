@@ -55,6 +55,7 @@ protected:
 
   image_transport::ImageTransport imageTransport;
   image_transport::Publisher imagePub;
+  ros::Publisher visionSettingsPub;
   ros::Publisher geolocatedImagePub;
   ros::ServiceServer queryGeolocatedImageSrv;
 

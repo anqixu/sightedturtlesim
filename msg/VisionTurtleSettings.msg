@@ -1,0 +1,5 @@
+float64 camera_hfov_deg
+float64 camera_aspect_ratio
+uint32 image_width
+uint32 image_height
+uint32 image_fps

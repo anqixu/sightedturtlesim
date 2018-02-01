@@ -1,6 +1,7 @@
 #include "sightedturtlesim/VisionTurtle.hpp"
 #include "sightedturtlesim/AbstractImageServer.hpp"
 #include <std_msgs/Header.h>
+#include <sightedturtlesim/VisionTurtleSettings.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <boost/thread/mutex.hpp>
 
@@ -27,9 +28,19 @@ VisionTurtle::VisionTurtle(const ros::NodeHandle& nh,
         hfovDeg(hfovDeg), aspectRatio(aspectRatio) {
   // Connect to ROS hooks
   imagePub = imageTransport.advertise("image_raw", 1); // WARNING: this can take some time to start, e.g. ~1sec
+  visionSettingsPub = nh_.advertise<sightedturtlesim::VisionTurtleSettings>("vision_settings", 1, true); // latch=true
   geolocatedImagePub = nh_.advertise<sightedturtlesim::ImageWithPoseXYZ>("image_xyz", 1);
   queryGeolocatedImageSrv = nh_.advertiseService("query_geolocated_image",
       &VisionTurtle::queryGeolocatedImageCallback, this);
+
+  // Publish vision settings
+  sightedturtlesim::VisionTurtleSettings s;
+  s.camera_hfov_deg = hfovDeg;
+  s.camera_aspect_ratio = aspectRatio;
+  s.image_width = imWidth;
+  s.image_height = imHeight;
+  s.image_fps = fps;
+  visionSettingsPub.publish(s);
 
   // Setup image buffer
   image.header.seq = ++imageSeqCount;

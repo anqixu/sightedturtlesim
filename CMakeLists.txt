@@ -73,6 +73,7 @@ add_message_files(
   DriveXYZ.msg
   TurtleParams.msg
   MapSettings.msg
+  VisionTurtleSettings.msg
   )
 
 add_service_files(
