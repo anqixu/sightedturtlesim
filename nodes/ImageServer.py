@@ -82,9 +82,9 @@ class SingleImageServer:
         bbY += patchHeight
 
     # Decide to downsize image if necessary
-    if camW > DOWNSIZE_SCALE_RATIO*outputW and camH > DOWNSIZE_SCALE_RATIO*outputH:
-      downsizeFactor = max(DOWNSIZE_SCALE_RATIO*outputW/camW,
-                          DOWNSIZE_SCALE_RATIO*outputH/camH)
+    if camW > SingleImageServer.DOWNSIZE_SCALE_RATIO*outputW and camH > SingleImageServer.DOWNSIZE_SCALE_RATIO*outputH:
+      downsizeFactor = max(SingleImageServer.DOWNSIZE_SCALE_RATIO*outputW/camW,
+                           SingleImageServer.DOWNSIZE_SCALE_RATIO*outputH/camH)
       bbImage = cv2.resize(bbImage, dsize=None, fx=downsizeFactor, fy=downsizeFactor, interpolation=cv2.INTER_AREA)
       camW *= downsizeFactor
       camH *= downsizeFactor
