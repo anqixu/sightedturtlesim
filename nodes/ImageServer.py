@@ -116,7 +116,7 @@ class SingleImageServer:
 
     camImage = bbRotatedImage[bbRTopLeftY:bbRBottomRightY, bbRTopLeftX:bbRBottomRightX]
     if camImage.shape[:2] != output_shape:
-      buffer = cv2.resize(bbImage, dsize=(outputW, outputH), interpolation=cv2.INTER_LINEAR)
+      buffer = cv2.resize(camImage, dsize=(outputW, outputH), interpolation=cv2.INTER_LINEAR)
     else:
       buffer = camImage.copy() # In rare case camImage is a slice from underlying map
 
